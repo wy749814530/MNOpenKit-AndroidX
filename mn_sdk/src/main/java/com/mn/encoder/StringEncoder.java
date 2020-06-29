@@ -1,4 +1,4 @@
-package voice.encoder;
+package com.mn.encoder;
 
 public interface StringEncoder {
     public byte[] string2Bytes(String _s);

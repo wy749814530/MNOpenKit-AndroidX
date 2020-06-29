@@ -1,4 +1,4 @@
-202003131140.3.0.2
+202006051540.3.0.2
 
 1.MNOpenSDK集成（MNOpenSDK integration）
 ================
@@ -891,7 +891,7 @@ LoginBean解析：
 |user_id|String|用户ID|
 |access_token|String|服务分配的全局唯一接口调用凭据|
 
-### 1.2 取注册账号验证码(Get registered account verification code)
+### 1.2 获取注册账号验证码(Get registered account verification code)
 ```java
 /**
 * 获取注册账号验证码(Get registered account verification code)
@@ -1852,8 +1852,15 @@ public static boolean getP2pPreLinkState() ;
  */
 public static String getDomain() ;
 ```
-### 1.9 获取AccessToken（Get AccessToken）
+### 1.9  AccessToken
 ```java
+/**
+* 设置AccessToken（Set AccessToken）
+*
+* @param token
+*/
+public static void setAccessToken(String token);
+
 /**
  * 获取AccessToken（Get AccessToken）
  *
@@ -1887,6 +1894,18 @@ public static void logout();
  * @return
  */
 public static void linkToDevice(String sn, boolean isShareDev);
+```
+
+### 1.13 登录ETS与IDM服务
+```java
+/**
+* 登录ETS与IDM服务，请确保用户已经登录之后调用。
+* 如果已经使用MNKit.loginWithAccount()方法登录的用户不要在调用此方法
+* (To log in to ETS and IDM services, please make sure that the user * has called after logging in.If the user who has logged in using the * MNKit.loginWithAccount() method does not call this method)
+* @param userId 
+* @param accessToken 
+*/
+public static void loginEtsAndIdm(String userId, String accessToken);
 ```
 ## 2 设备配置
 ### 2.1  获取设备本地卡录像信息(Get device local card recording information)

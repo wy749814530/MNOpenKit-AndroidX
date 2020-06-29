@@ -1,4 +1,4 @@
-package voice.encoder;
+package com.mn.encoder;
 
 public interface VoicePlayerListener {
     public void onPlayStart(VoicePlayer _player);

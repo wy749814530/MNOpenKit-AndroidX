@@ -42,8 +42,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import com.mnopensdk.demo.R;
-import voice.encoder.VoicePlayer;
-import voice.encoder.VoicePlayerListener;
+import com.mn.encoder.VoicePlayer;
+import com.mn.encoder.VoicePlayerListener;
 
 public class BindDevSendSoundWifiActivity extends Activity implements VoicePlayerListener, IMNBindDeviceFace, MNKitInterface.DeviceBindViewCallBack {
     @BindView(R.id.receive_back)

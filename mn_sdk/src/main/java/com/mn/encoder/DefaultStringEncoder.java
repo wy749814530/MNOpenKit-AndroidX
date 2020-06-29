@@ -1,4 +1,4 @@
-package voice.encoder;
+package com.mn.encoder;
 
 import java.io.UnsupportedEncodingException;
 

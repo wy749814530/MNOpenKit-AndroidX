@@ -1,4 +1,4 @@
-package voice.encoder;
+package com.mn.encoder;
 
 /**
  * Created by Administrator on 2015/1/2.

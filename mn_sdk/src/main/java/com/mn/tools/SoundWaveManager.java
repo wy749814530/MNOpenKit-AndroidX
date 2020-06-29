@@ -1,13 +1,9 @@
 package com.mn.tools;
 
-import android.util.Log;
-
-import com.mn.tools.LocalDataUtils;
-
 import MNSDK.MNOpenSDK;
-import voice.encoder.DataEncoder;
-import voice.encoder.VoicePlayer;
-import voice.encoder.VoicePlayerListener;
+import com.mn.encoder.DataEncoder;
+import com.mn.encoder.VoicePlayer;
+import com.mn.encoder.VoicePlayerListener;
 
 /**
  * Created by Administrator on 2020/1/6 0006.
