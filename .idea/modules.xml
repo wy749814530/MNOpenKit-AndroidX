@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/MNOpenKit-AndroidX.iml" filepath="$PROJECT_DIR$/MNOpenKit-AndroidX.iml" group="MNOpenKit-AndroidX" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" group="MNOpenKit-AndroidX/app" />
+      <module fileurl="file://$PROJECT_DIR$/mn_sdk/mn_sdk.iml" filepath="$PROJECT_DIR$/mn_sdk/mn_sdk.iml" group="MNOpenKit-AndroidX/mn_sdk" />
+    </modules>
+  </component>
+</project>

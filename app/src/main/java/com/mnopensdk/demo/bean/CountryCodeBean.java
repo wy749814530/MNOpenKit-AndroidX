@@ -1,0 +1,118 @@
+package com.mnopensdk.demo.bean;
+
+import java.util.List;
+
+/**
+ * Created by Administrator on 2019/1/8 0008.
+ */
+
+public class CountryCodeBean {
+
+    /**
+     * msg : OK
+     * code : 2000
+     * areas : [{"nc":"AD","ac":"376","domain":"bullyunus.com","code":3,"en_name":"Andorra","cn_name":"安道尔"},{"nc":"AE","ac":"971","domain":"bullyunus.com","code":3,"en_name":"United Arab Emirates","cn_name":"阿联酋"},{"nc":"AF","ac":"93","domain":"bullyunus.com","code":3,"en_name":"Afghanistan","cn_name":"阿富汗"},{"nc":"AG","ac":"1268","domain":"bullyunus.com","code":3,"en_name":"Antigua and Barbuda","cn_name":"安提瓜和巴布达"},{"nc":"AI","ac":"1264","domain":"bullyunus.com","code":3,"en_name":"Anguilla","cn_name":"安格拉"},{"nc":"AL","ac":"355","domain":"bullyunus.com","code":3,"en_name":"Albania","cn_name":"阿尔巴尼亚"},{"nc":"AM","ac":"374","domain":"bullyunus.com","code":3,"en_name":"Armenia","cn_name":"亚美尼亚"},{"nc":"AO","ac":"244","domain":"bullyunus.com","code":3,"en_name":"Angola","cn_name":"安哥拉"},{"nc":"AR","ac":"54","domain":"bullyunus.com","code":3,"en_name":"Argentina","cn_name":"阿根廷"},{"nc":"AT","ac":"43","domain":"bullyunus.com","code":3,"en_name":"Austria","cn_name":"奥地利"},{"nc":"AU","ac":"61","domain":"bullyunus.com","code":3,"en_name":"Australia","cn_name":"澳大利亚"},{"nc":"AZ","ac":"994","domain":"bullyunus.com","code":3,"en_name":"Azerbaijan","cn_name":"阿塞拜疆"},{"nc":"BB","ac":"1246","domain":"bullyunus.com","code":3,"en_name":"Barbados","cn_name":"巴巴多斯"},{"nc":"BD","ac":"880","domain":"bullyunus.com","code":3,"en_name":"Bangladesh","cn_name":"孟加拉国"},{"nc":"BE","ac":"32","domain":"bullyunus.com","code":3,"en_name":"Belgium","cn_name":"比利时"},{"nc":"BF","ac":"226","domain":"bullyunus.com","code":3,"en_name":"Burkina Faso","cn_name":"布基纳法索"},{"nc":"BG","ac":"359","domain":"bullyunus.com","code":3,"en_name":"Bulgaria","cn_name":"保加利亚"},{"nc":"BH","ac":"973","domain":"bullyunus.com","code":3,"en_name":"Bahrain","cn_name":"巴林"},{"nc":"BI","ac":"257","domain":"bullyunus.com","code":3,"en_name":"Burundi","cn_name":"布隆迪"},{"nc":"BJ","ac":"229","domain":"bullyunus.com","code":3,"en_name":"Benin","cn_name":"贝宁"},{"nc":"BM","ac":"1441","domain":"bullyunus.com","code":3,"en_name":"Bermuda","cn_name":"百慕大"},{"nc":"BN","ac":"673","domain":"bullyunus.com","code":3,"en_name":"Brunei Darussalam","cn_name":"文莱达鲁萨兰国"},{"nc":"BO","ac":"591","domain":"bullyunus.com","code":3,"en_name":"Bolivia","cn_name":"玻利维亚"},{"nc":"BR","ac":"55","domain":"bullyunus.com","code":3,"en_name":"Brazil","cn_name":"巴西"},{"nc":"BS","ac":"1242","domain":"bullyunus.com","code":3,"en_name":"Bahamas","cn_name":"巴哈马"},{"nc":"BW","ac":"267","domain":"bullyunus.com","code":3,"en_name":"Botswana","cn_name":"伯兹瓦纳"},{"nc":"BY","ac":"375","domain":"bullyunus.com","code":3,"en_name":"Belarus","cn_name":"白俄罗斯"},{"nc":"BZ","ac":"501","domain":"bullyunus.com","code":3,"en_name":"Belize","cn_name":"伯利兹"},{"nc":"CA","ac":"1","domain":"bullyunus.com","code":3,"en_name":"Canada","cn_name":"加拿大"},{"nc":"CF","ac":"236","domain":"bullyunus.com","code":3,"en_name":"Central African Republic","cn_name":"中非共和国"},{"nc":"CG","ac":"242","domain":"bullyunus.com","code":3,"en_name":"Congo","cn_name":"刚果"},{"nc":"CH","ac":"41","domain":"bullyunus.com","code":3,"en_name":"Switzerland","cn_name":"瑞士"},{"nc":"CK","ac":"682","domain":"bullyunus.com","code":3,"en_name":"Cook Islands","cn_name":"库克群岛"},{"nc":"CL","ac":"56","domain":"bullyunus.com","code":3,"en_name":"Chile","cn_name":"智利"},{"nc":"CM","ac":"237","domain":"bullyunus.com","code":3,"en_name":"Cameroon","cn_name":"喀麦隆"},{"nc":"CN","ac":"86","domain":"bullyuncn.com","code":2,"en_name":"China","cn_name":"中国"},{"nc":"CO","ac":"57","domain":"bullyunus.com","code":3,"en_name":"Colombia","cn_name":"哥伦比亚"},{"nc":"CR","ac":"506","domain":"bullyunus.com","code":3,"en_name":"Costa Rica","cn_name":"哥斯达黎加"},{"nc":"CU","ac":"53","domain":"bullyunus.com","code":3,"en_name":"Cuba","cn_name":"古巴"},{"nc":"CV","ac":"357","domain":"bullyunus.com","code":3,"en_name":"Cape Verde","cn_name":"佛得角"},{"nc":"CZ","ac":"420","domain":"bullyunus.com","code":3,"en_name":"Czech Republic","cn_name":"捷克共和国"},{"nc":"DE","ac":"49","domain":"bullyunus.com","code":3,"en_name":"Germany","cn_name":"德国"},{"nc":"DJ","ac":"253","domain":"bullyunus.com","code":3,"en_name":"Djibouti","cn_name":"吉布提"},{"nc":"DK","ac":"45","domain":"bullyunus.com","code":3,"en_name":"Denmark","cn_name":"丹麦"},{"nc":"DO","ac":"1890","domain":"bullyunus.com","code":3,"en_name":"Dominican Republic","cn_name":"多米尼加共和国"},{"nc":"DZ","ac":"213","domain":"bullyunus.com","code":3,"en_name":"Algeria","cn_name":"阿尔及利亚"},{"nc":"EC","ac":"593","domain":"bullyunus.com","code":3,"en_name":"Ecuador","cn_name":"厄瓜多尔"},{"nc":"EE","ac":"372","domain":"bullyunus.com","code":3,"en_name":"Estonia","cn_name":"爱沙尼亚"},{"nc":"EG","ac":"20","domain":"bullyunus.com","code":3,"en_name":"Egypt","cn_name":"埃及"},{"nc":"ES","ac":"34","domain":"bullyunus.com","code":3,"en_name":"Spain","cn_name":"西班牙"},{"nc":"ET","ac":"251","domain":"bullyunus.com","code":3,"en_name":"Ethiopia","cn_name":"埃塞俄比亚"},{"nc":"FI","ac":"358","domain":"bullyunus.com","code":3,"en_name":"Finland","cn_name":"芬兰"},{"nc":"FJ","ac":"679","domain":"bullyunus.com","code":3,"en_name":"Fiji","cn_name":"斐济"},{"nc":"FR","ac":"33","domain":"bullyunus.com","code":3,"en_name":"France","cn_name":"法国"},{"nc":"GA","ac":"241","domain":"bullyunus.com","code":3,"en_name":"Gobon","cn_name":"加蓬"},{"nc":"GB","ac":"44","domain":"bullyunus.com","code":3,"en_name":"United Kingdom","cn_name":"英国"},{"nc":"GD","ac":"1809","domain":"bullyunus.com","code":3,"en_name":"Grenada","cn_name":"格林纳达"},{"nc":"GE","ac":"995","domain":"bullyunus.com","code":3,"en_name":"Georgia","cn_name":"格鲁吉亚"},{"nc":"GF","ac":"594","domain":"bullyunus.com","code":3,"en_name":"French Guiana","cn_name":"法属圭亚那"},{"nc":"GH","ac":"233","domain":"bullyunus.com","code":3,"en_name":"Ghana","cn_name":"加纳"},{"nc":"GI","ac":"350","domain":"bullyunus.com","code":3,"en_name":"Gibraltar","cn_name":"直布罗陀"},{"nc":"GM","ac":"220","domain":"bullyunus.com","code":3,"en_name":"Gambia","cn_name":"冈比亚"},{"nc":"GN","ac":"224","domain":"bullyunus.com","code":3,"en_name":"Guynea","cn_name":"几内亚"},{"nc":"GR","ac":"30","domain":"bullyunus.com","code":3,"en_name":"Greece","cn_name":"希腊"},{"nc":"GT","ac":"502","domain":"bullyunus.com","code":3,"en_name":"Guatemala","cn_name":"危地马拉"},{"nc":"GU","ac":"1671","domain":"bullyunus.com","code":3,"en_name":"Guam","cn_name":"关岛"},{"nc":"GY","ac":"592","domain":"bullyunus.com","code":3,"en_name":"Guyana","cn_name":"圭亚那"},{"nc":"HK","ac":"852","domain":"bullyunus.com","code":3,"en_name":"Hong Kong","cn_name":"香港"},{"nc":"HN","ac":"504","domain":"bullyunus.com","code":3,"en_name":"Honduras","cn_name":"洪都拉斯"},{"nc":"HT","ac":"509","domain":"bullyunus.com","code":3,"en_name":"Haiti","cn_name":"海地"},{"nc":"HU","ac":"36","domain":"bullyunus.com","code":3,"en_name":"Hungary","cn_name":"匈牙利"},{"nc":"ID","ac":"62","domain":"bullyunus.com","code":3,"en_name":"Indonesia","cn_name":"印度尼西亚"},{"nc":"IE","ac":"353","domain":"bullyunus.com","code":3,"en_name":"Ireland","cn_name":"爱尔兰共和国"},{"nc":"IL","ac":"972","domain":"bullyunus.com","code":3,"en_name":"Israel","cn_name":"以色列"},{"nc":"IN","ac":"91","domain":"bullyunin.com","code":3,"en_name":"India","cn_name":"印度"},{"nc":"IQ","ac":"964","domain":"bullyunus.com","code":3,"en_name":"Iraq","cn_name":"伊拉克"},{"nc":"IR","ac":"98","domain":"bullyunus.com","code":3,"en_name":"Iran","cn_name":"伊朗"},{"nc":"IS","ac":"354","domain":"bullyunus.com","code":3,"en_name":"Iceland","cn_name":"冰岛"},{"nc":"IT","ac":"39","domain":"bullyunus.com","code":3,"en_name":"Italy","cn_name":"意大利"},{"nc":"JM","ac":"1876","domain":"bullyunus.com","code":3,"en_name":"Jamaica","cn_name":"牙买加"},{"nc":"JO","ac":"962","domain":"bullyunus.com","code":3,"en_name":"Jordan","cn_name":"约旦"},{"nc":"JP","ac":"81","domain":"bullyunus.com","code":3,"en_name":"Japan","cn_name":"日本"},{"nc":"KE","ac":"254","domain":"bullyunus.com","code":3,"en_name":"Kenya","cn_name":"肯尼亚"},{"nc":"KG","ac":"331","domain":"bullyunus.com","code":3,"en_name":"Kyrgyzstan","cn_name":"吉尔吉斯斯坦"},{"nc":"KH","ac":"855","domain":"bullyunus.com","code":3,"en_name":"Cambodia","cn_name":"柬埔塞"},{"nc":"KP","ac":"850","domain":"bullyunus.com","code":3,"en_name":"Korea-North","cn_name":"朝鲜"},{"nc":"KR","ac":"82","domain":"bullyunus.com","code":3,"en_name":"Korea-South","cn_name":"韩国"},{"nc":"KW","ac":"965","domain":"bullyunus.com","code":3,"en_name":"Kuwait","cn_name":"科威特"},{"nc":"KZ","ac":"327","domain":"bullyunus.com","code":3,"en_name":"Kazakhstan","cn_name":"哈萨克斯坦"},{"nc":"LA","ac":"856","domain":"bullyunus.com","code":3,"en_name":"Lao People's Republic","cn_name":"老挝人民共和国"},{"nc":"LB","ac":"961","domain":"bullyunus.com","code":3,"en_name":"Lebanon","cn_name":"黎巴嫩"},{"nc":"LC","ac":"1758","domain":"bullyunus.com","code":3,"en_name":"St. Lucia","cn_name":"圣露西亚岛"},{"nc":"LI","ac":"423","domain":"bullyunus.com","code":3,"en_name":"Liechtenstein","cn_name":"列支敦士登"},{"nc":"LK","ac":"94","domain":"bullyunus.com","code":3,"en_name":"Sri Lanka","cn_name":"斯里兰卡"},{"nc":"LR","ac":"231","domain":"bullyunus.com","code":3,"en_name":"Liberia","cn_name":"利比里亚"},{"nc":"LS","ac":"266","domain":"bullyunus.com","code":3,"en_name":"Lesotho","cn_name":"莱索托"},{"nc":"LT","ac":"370","domain":"bullyunus.com","code":3,"en_name":"Lithuania","cn_name":"立陶宛"},{"nc":"LU","ac":"352","domain":"bullyunus.com","code":3,"en_name":"Luxembourg","cn_name":"卢森堡"},{"nc":"LV","ac":"371","domain":"bullyunus.com","code":3,"en_name":"Latvia","cn_name":"拉脱维亚"},{"nc":"LY","ac":"218","domain":"bullyunus.com","code":3,"en_name":"Libya","cn_name":"利比亚"},{"nc":"MA","ac":"212","domain":"bullyunus.com","code":3,"en_name":"Morocco","cn_name":"摩洛哥"},{"nc":"MC","ac":"377","domain":"bullyunus.com","code":3,"en_name":"Monaco","cn_name":"摩纳哥"},{"nc":"MD","ac":"373","domain":"bullyunus.com","code":3,"en_name":"Moldova","cn_name":"摩尔多瓦"},{"nc":"MG","ac":"261","domain":"bullyunus.com","code":3,"en_name":"Madagascar","cn_name":"马达加斯加"},{"nc":"ML","ac":"223","domain":"bullyunus.com","code":3,"en_name":"Mali","cn_name":"马里"},{"nc":"MM","ac":"95","domain":"bullyunus.com","code":3,"en_name":"Myanmar","cn_name":"缅甸"},{"nc":"MN","ac":"976","domain":"bullyunus.com","code":3,"en_name":"Mongolia","cn_name":"蒙古"},{"nc":"MO","ac":"853","domain":"bullyunus.com","code":3,"en_name":"Macau","cn_name":"澳门"},{"nc":"MS","ac":"1664","domain":"bullyunus.com","code":3,"en_name":"Montserrat","cn_name":"蒙塞拉特岛"},{"nc":"MT","ac":"356","domain":"bullyunus.com","code":3,"en_name":"Malta","cn_name":"马耳他"},{"nc":"MV","ac":"960","domain":"bullyunus.com","code":3,"en_name":"Maldives","cn_name":"马尔代夫"},{"nc":"MW","ac":"265","domain":"bullyunus.com","code":3,"en_name":"Malawi","cn_name":"马拉维"},{"nc":"MX","ac":"52","domain":"bullyunus.com","code":3,"en_name":"Mexico","cn_name":"墨西哥"},{"nc":"MY","ac":"60","domain":"bullyunus.com","code":3,"en_name":"Malaysia","cn_name":"马来西亚"},{"nc":"MZ","ac":"258","domain":"bullyunus.com","code":3,"en_name":"Mozambique","cn_name":"莫桑比克"},{"nc":"NA","ac":"264","domain":"bullyunus.com","code":3,"en_name":"Namibia","cn_name":"纳米比亚"},{"nc":"NE","ac":"227","domain":"bullyunus.com","code":3,"en_name":"Niger","cn_name":"尼日尔"},{"nc":"NG","ac":"234","domain":"bullyunus.com","code":3,"en_name":"Nigeria","cn_name":"尼日利亚"},{"nc":"NI","ac":"505","domain":"bullyunus.com","code":3,"en_name":"Nicaragua","cn_name":"尼加拉瓜"},{"nc":"NL","ac":"31","domain":"bullyunus.com","code":3,"en_name":"Netherlands","cn_name":"荷兰"},{"nc":"NO","ac":"47","domain":"bullyunus.com","code":3,"en_name":"Norway","cn_name":"挪威"},{"nc":"NP","ac":"977","domain":"bullyunus.com","code":3,"en_name":"Nepal","cn_name":"尼泊尔"},{"nc":"NR","ac":"674","domain":"bullyunus.com","code":3,"en_name":"Nauru","cn_name":"瑙鲁"},{"nc":"NZ","ac":"64","domain":"bullyunus.com","code":3,"en_name":"New Zealand","cn_name":"新西兰"},{"nc":"OM","ac":"968","domain":"bullyunus.com","code":3,"en_name":"Oman","cn_name":"阿曼"},{"nc":"PA","ac":"507","domain":"bullyunus.com","code":3,"en_name":"Panama","cn_name":"巴拿马"},{"nc":"PE","ac":"51","domain":"bullyunus.com","code":3,"en_name":"Peru","cn_name":"秘鲁"},{"nc":"PF","ac":"689","domain":"bullyunus.com","code":3,"en_name":"French Polynesia","cn_name":"法属玻利尼西亚"},{"nc":"PG","ac":"675","domain":"bullyunus.com","code":3,"en_name":"Papua New Guinea","cn_name":"巴布亚新几内亚"},{"nc":"PH","ac":"63","domain":"bullyunus.com","code":3,"en_name":"Philippines","cn_name":"菲律宾"},{"nc":"PK","ac":"92","domain":"bullyunus.com","code":3,"en_name":"Pakistan","cn_name":"巴基斯坦"},{"nc":"PL","ac":"48","domain":"bullyunus.com","code":3,"en_name":"Poland","cn_name":"波兰"},{"nc":"PR","ac":"1787","domain":"bullyunus.com","code":3,"en_name":"Puerto Rico","cn_name":"波多黎各"},{"nc":"PT","ac":"351","domain":"bullyunus.com","code":3,"en_name":"Portugal","cn_name":"葡萄牙"},{"nc":"PY","ac":"595","domain":"bullyunus.com","code":3,"en_name":"Paraguay","cn_name":"巴拉圭"},{"nc":"QA","ac":"974","domain":"bullyunus.com","code":3,"en_name":"Qatar","cn_name":"卡塔尔"},{"nc":"RO","ac":"40","domain":"bullyunus.com","code":3,"en_name":"Romania","cn_name":"罗马尼亚"},{"nc":"RU","ac":"7","domain":"bullyunus.com","code":3,"en_name":"Russian Federation","cn_name":"俄罗斯联邦"},{"nc":"SA","ac":"966","domain":"bullyunus.com","code":3,"en_name":"Saudi Arabia","cn_name":"沙特阿拉伯"},{"nc":"SB","ac":"677","domain":"bullyunus.com","code":3,"en_name":"Solomon Islands","cn_name":"所罗门群岛"},{"nc":"SC","ac":"248","domain":"bullyunus.com","code":3,"en_name":"Seychelles","cn_name":"塞舌尔"},{"nc":"SD","ac":"249","domain":"bullyunus.com","code":3,"en_name":"Sudan","cn_name":"苏丹"},{"nc":"SE","ac":"46","domain":"bullyunus.com","code":3,"en_name":"Sweden","cn_name":"瑞典"},{"nc":"SG","ac":"65","domain":"bullyunus.com","code":3,"en_name":"Singapore","cn_name":"新加坡"},{"nc":"SI","ac":"386","domain":"bullyunus.com","code":3,"en_name":"Slovenia","cn_name":"斯洛文尼亚"},{"nc":"SK","ac":"421","domain":"bullyunus.com","code":3,"en_name":"Slovakia","cn_name":"斯洛伐克"},{"nc":"SL","ac":"232","domain":"bullyunus.com","code":3,"en_name":"Sierra Leone","cn_name":"塞拉利昂"},{"nc":"SM","ac":"378","domain":"bullyunus.com","code":3,"en_name":"San Marino","cn_name":"圣马力诺"},{"nc":"SN","ac":"221","domain":"bullyunus.com","code":3,"en_name":"Senegal","cn_name":"塞内加尔"},{"nc":"SO","ac":"252","domain":"bullyunus.com","code":3,"en_name":"Somalia","cn_name":"索马里"},{"nc":"SR","ac":"597","domain":"bullyunus.com","code":3,"en_name":"Suriname","cn_name":"苏里南"},{"nc":"ST","ac":"239","domain":"bullyunus.com","code":3,"en_name":"Sao Tome & Principe","cn_name":"圣多美和普林西比"},{"nc":"SY","ac":"963","domain":"bullyunus.com","code":3,"en_name":"Syrian Arab Republic","cn_name":"叙利亚"},{"nc":"SZ","ac":"268","domain":"bullyunus.com","code":3,"en_name":"Swaziland","cn_name":"斯威士兰"},{"nc":"TD","ac":"235","domain":"bullyunus.com","code":3,"en_name":"Chad","cn_name":"乍得"},{"nc":"TE","ac":"86","domain":"bullyunte.com","code":3,"en_name":"ManNiu","cn_name":"蛮牛"},{"nc":"TG","ac":"228","domain":"bullyunus.com","code":3,"en_name":"Togo","cn_name":"多哥"},{"nc":"TH","ac":"66","domain":"bullyunus.com","code":2,"en_name":"Thailand","cn_name":"泰国"},{"nc":"TM","ac":"993","domain":"bullyunus.com","code":3,"en_name":"Turkmenistan","cn_name":"土库曼斯坦"},{"nc":"TN","ac":"216","domain":"bullyunus.com","code":3,"en_name":"Tunisia","cn_name":"突尼斯"},{"nc":"TO","ac":"676","domain":"bullyunus.com","code":3,"en_name":"Tonga","cn_name":"汤加"},{"nc":"TR","ac":"90","domain":"bullyunus.com","code":3,"en_name":"Turkey","cn_name":"土耳其"},{"nc":"TT","ac":"1809","domain":"bullyunus.com","code":3,"en_name":"Trinidad & Tobago","cn_name":"特立尼达和多巴哥"},{"nc":"TW","ac":"886","domain":"bullyunus.com","code":3,"en_name":"Taiwan","cn_name":"台湾"},{"nc":"TZ","ac":"255","domain":"bullyunus.com","code":3,"en_name":"Tanzania","cn_name":"坦桑尼亚"},{"nc":"UA","ac":"380","domain":"bullyunus.com","code":3,"en_name":"Ukrainian SSR","cn_name":"乌克兰"},{"nc":"UG","ac":"256","domain":"bullyunus.com","code":3,"en_name":"Uganda","cn_name":"乌干达"},{"nc":"US","ac":"1","domain":"bullyunus.com","code":2,"en_name":"United States","cn_name":"美国"},{"nc":"UY","ac":"598","domain":"bullyunus.com","code":3,"en_name":"Uruguay","cn_name":"乌拉圭"},{"nc":"VC","ac":"1784","domain":"bullyunus.com","code":3,"en_name":"St. Vincent & the Grenadines","cn_name":"圣文森特和格林纳丁斯"},{"nc":"VE","ac":"58","domain":"bullyunus.com","code":3,"en_name":"Venezuela","cn_name":"委内瑞拉"},{"nc":"VN","ac":"84","domain":"bullyunus.com","code":3,"en_name":"Vietnam","cn_name":"越南"},{"nc":"YE","ac":"967","domain":"bullyunus.com","code":3,"en_name":"Yemen","cn_name":"也门"},{"nc":"YU","ac":"381","domain":"bullyunus.com","code":3,"en_name":"Yugoslavia","cn_name":"南斯拉夫"},{"nc":"ZA","ac":"27","domain":"bullyunus.com","code":3,"en_name":"South Africa","cn_name":"南非"},{"nc":"ZM","ac":"260","domain":"bullyunus.com","code":3,"en_name":"Zambia","cn_name":"赞比亚"},{"nc":"ZR","ac":"243","domain":"bullyunus.com","code":3,"en_name":"Zaire","cn_name":"扎伊尔"},{"nc":"ZW","ac":"263","domain":"bullyunus.com","code":3,"en_name":"Zimbabwe","cn_name":"津巴布韦"}]
+     */
+
+    private String msg;
+    private int code;
+    private List<AreasBean> areas;
+
+    public String getMsg() {
+        return msg;
+    }
+
+    public void setMsg(String msg) {
+        this.msg = msg;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public void setCode(int code) {
+        this.code = code;
+    }
+
+    public List<AreasBean> getAreas() {
+        return areas;
+    }
+
+    public void setAreas(List<AreasBean> areas) {
+        this.areas = areas;
+    }
+
+    public static class AreasBean {
+        /**
+         * nc : AD
+         * ac : 376
+         * domain : bullyunus.com
+         * code : 3
+         * en_name : Andorra
+         * cn_name : 安道尔
+         */
+
+        private String nc;
+        private String ac;
+        private String domain;
+        private int code;
+        private String en_name;
+        private String cn_name;
+        private String sortLetters;  //显示数据拼音的首字母
+
+        public String getSortLetters() {
+            return sortLetters;
+        }
+
+        public void setSortLetters(String sortLetters) {
+            this.sortLetters = sortLetters;
+        }
+        public String getNc() {
+            return nc;
+        }
+
+        public void setNc(String nc) {
+            this.nc = nc;
+        }
+
+        public String getAc() {
+            return ac;
+        }
+
+        public void setAc(String ac) {
+            this.ac = ac;
+        }
+
+        public String getDomain() {
+            return domain;
+        }
+
+        public void setDomain(String domain) {
+            this.domain = domain;
+        }
+
+        public int getCode() {
+            return code;
+        }
+
+        public void setCode(int code) {
+            this.code = code;
+        }
+
+        public String getEn_name() {
+            return en_name;
+        }
+
+        public void setEn_name(String en_name) {
+            this.en_name = en_name;
+        }
+
+        public String getCn_name() {
+            return cn_name;
+        }
+
+        public void setCn_name(String cn_name) {
+            this.cn_name = cn_name;
+        }
+    }
+}

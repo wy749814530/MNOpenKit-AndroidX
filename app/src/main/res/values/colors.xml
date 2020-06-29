@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <!--主题渐变色-->
+    <color name="title_start">#2096fe</color>
+    <color name="title_end">#5ddcff</color>
+    <color name="backgound_color">#e9f2f7</color>
+    <color name="cloud_black">#333333</color>
+    <color name="title_text_color">#222222</color>
+    <color name="dark">#FF222222</color>
+    <color name="into_item">#222222</color>
+    <color name="text_default">#333333</color>
+    <color name="dark_333333">#333333</color>
+    <color name="black">#000000</color>
+    <color name="text_item">#222222</color>
+    <color name="ring_bg_color">#313131</color>
+    <color name="dark_555555">#555555</color>
+    <color name="login_int">#666666</color>
+    <color name="gray_666666">#666666</color>
+    <color name="color_777777">#777777</color>
+    <color name="gray">#808080</color>
+    <color name="text_right">#999999</color>
+    <color name="login_text_color">#999999</color>
+    <color name="cloud_gray">#999999</color>
+    <color name="gray_999999">#999999</color>
+    <color name="lightGrey">#A4ACB1</color>
+    <color name="st_grey">#c6c6c6</color>
+    <color name="gray_cccccc">#cccccc</color>
+    <color name="line">#cccccc</color>
+    <color name="gray_f2">#F2F2F2</color>
+    <color name="st_divider">#e3e3e3</color>
+    <color name="colorLine">#E6E6E6</color>
+    <color name="graywhite">#F5F5F5</color>
+    <color name="touming">#00000000</color>
+    <color name="transparent">#00000000</color>
+    <color name="color_white">#ffffff</color>
+    <color name="white">#ffffff</color>
+
+    <color name="yellow_tip">#ffa312</color>
+    <color name="yellow_ffba57">#ffba57</color>
+    <color name="yellow_2">#ff5a00</color>
+    <color name="info_quits">#ff5a00</color>
+    <color name="red_f25e5e">#f25e5e</color>
+    <color name="st_red">#eb2828</color>
+    <color name="red">#ff0000</color>
+    <color name="text_org">#FC7126</color>
+
+    <!-- popWindow 颜色-->
+    <color name="blue_menu">#3280e0</color>
+    <color name="wheel_timebtn_nor">#057dff</color>
+    <color name="blue_2097fe">#2097fe</color>
+    <color name="blue_49a6f6">#49a6f6</color>
+    <color name="blue_47C2FC">#47C2FC</color>
+    <color name="blue_992097fe">#992097fe</color>
+    <color name="wheel_timebtn_pre">#c2daf5</color>
+
+    <color name="biz_audio_progress_bg">#00b2ff</color>
+    <color name="biz_audio_progress_first">#838080</color>
+    <color name="color_green">#72cb3d</color>
+    <color name="green_89d146">#89d146</color>
+    <color name="biz_audio_progress_second">#0fcf0c</color>
+    <color name="fun_bkcolor">#EAEAEA</color>
+    <color name="color_202594">#202594</color>
+    <!-- SD开回放光标 -->
+    <color name="sd_scribed_line_color">#13c6ed</color>
+    <color name="sd_general_line_color">#3280e0</color>
+    <color name="sd_face_line_color">#ff0000</color>
+    <color name="sd_move_line_color">#5d03b1</color>
+    <color name="sd_line_color">#3280e0</color>
+    <color name="calendar_point">#49a6f6</color>
+
+</resources>

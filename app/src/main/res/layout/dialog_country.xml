@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:background="@drawable/ruleshape_dialog_bg"
+   >
+
+    <TextView
+        android:id="@+id/county_t"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:layout_marginTop="15dp"
+        android:textColor="@color/into_item"
+        android:textSize="17sp"
+        android:text="@string/hint"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/country_one"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:textColor="@color/cloud_black"
+            android:textSize="14sp"
+          />
+        <TextView
+            android:id="@+id/country_two"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:textColor="@color/cloud_black"
+            android:textSize="14sp"
+            android:layout_marginTop="10dp"
+          />
+        <TextView
+            android:id="@+id/country_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="25dp"
+            android:layout_marginRight="25dp"
+            android:layout_marginTop="15dp"
+            android:textSize="13sp"
+            android:textColor="@color/login_int"
+            android:text="@string/coun_content">
+
+        </TextView>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="25dp"
+        android:padding="1dp">
+        <Button
+            android:id="@+id/btnContinueWait"
+            android:layout_width="wrap_content"
+            android:layout_height="43dp"
+            android:layout_weight="1"
+            android:background="@drawable/ruledialog_right_selector"
+            android:gravity="center"
+            android:text="@string/dia_cancel"
+            android:textColor="@color/into_item"
+            android:textSize="15sp"/>
+
+
+        <ImageView
+            android:id="@+id/img_line"
+            android:layout_width="0.5dp"
+            android:layout_gravity="center"
+            android:layout_height="18dp"
+            android:background="#c6c6c6"/>
+
+        <Button
+            android:id="@+id/btnExit"
+            android:layout_width="wrap_content"
+            android:layout_height="43dp"
+            android:layout_weight="1"
+            android:background="@drawable/ruledialog_left_selector"
+            android:gravity="center"
+            android:text="@string/dia_confirms"
+            android:textColor="@color/title_start"
+            android:textSize="16sp"/>
+    </LinearLayout>
+</LinearLayout>

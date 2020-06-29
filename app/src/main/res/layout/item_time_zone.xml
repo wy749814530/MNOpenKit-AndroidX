@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/zone"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/white">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:layout_toLeftOf="@+id/iv_zoneImg"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_localtion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="left"
+            android:layout_marginLeft="15dp"
+            android:clickable="false"
+            android:focusable="false"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:focusableInTouchMode="false"
+            android:text="GTM+00:00"
+            android:textColor="@color/into_item"
+            android:textSize="18sp"/>
+
+        <TextView
+            android:id="@+id/tv_zoneText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_localtion"
+            android:gravity="center"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginBottom="12dp"
+            android:clickable="false"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:text="GTM+00:00"
+            android:textColor="@color/login_text_color"
+            android:textSize="14sp"/>
+    </LinearLayout>
+
+
+    <ImageView
+        android:id="@+id/iv_zoneImg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_margin="13dp"
+        android:clickable="false"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:src="@mipmap/st_unchoose"
+        android:tag="off"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@color/line"
+        />
+</RelativeLayout>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/dialog_view"
+    android:layout_width="100dp"
+    android:layout_height="100dp"
+    android:alpha="0.8"
+    android:background="@drawable/bg_gray_normal_radius10"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <!-- 要想使对话框都透明，LinearLayout的背景色要设置为透明色 -->
+    <com.wang.avi.AVLoadingIndicatorView
+        android:id="@+id/av_load"
+        style="@style/AVLoadingIndicatorView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        app:indicatorColor="@color/white"
+        app:indicatorName="BallBeatIndicator" />
+
+    <TextView
+        android:id="@+id/tipTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:background="@null"
+        android:gravity="center"
+        android:text="@string/loadding"
+        android:textColor="@color/white"
+        android:visibility="gone" />
+</LinearLayout>

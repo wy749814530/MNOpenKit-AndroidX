@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="130dp"
+    android:background="@drawable/bg_dlg_normal"
+    android:alpha="0.8">
+
+    <ImageView
+        android:id="@+id/iv_tip_img"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:src="@mipmap/share_message_success"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:id="@+id/tv_tip_msg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="20dp"
+        android:layout_below="@+id/iv_tip_img"
+        android:textColor="@color/cloud_black"
+        android:text="@string/send_success"/>
+</RelativeLayout>

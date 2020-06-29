@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+android:orientation="vertical">
+
+    <Button
+            android:id="@+id/btn_sound"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14dip"
+            android:text="声波添加"
+    />
+
+    <Button
+            android:id="@+id/btn_qr_code"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14dip"
+            android:text="扫二维码添加"
+    />
+</LinearLayout>

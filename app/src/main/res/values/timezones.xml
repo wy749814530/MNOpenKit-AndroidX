@@ -1,0 +1,38 @@
+<resources>
+    <string-array name="timezones_array">
+        <item>GMT+00:00|London</item>
+        <item>GMT+01:00|Central European Time</item>
+        <item>GMT+02:00|Athens、Cairo、Jerusalem</item>
+        <item>GMT+03:00|Moscow、Baghdad、Kuwait</item>
+        <item>GMT+03:30|Tehran</item>
+        <item>GMT+04:00|Tbilisi、Dubai、Yerevan</item>
+        <item>GMT+04:30|Kabul</item>
+        <item>GMT+05:00|Dushanbe、Toshkent、Ural、Ashgabat</item>
+        <item>GMT+05:30|Kolkata、Colombo</item>
+        <item>GMT+05:45|Kathmandu</item>
+        <item>GMT+06:00|Alma-Ata、Bishkeel</item>
+        <item>GMT+06:30|Yangon</item>
+        <item>GMT+07:00|Krasnoyarsk、Bangkok</item>
+        <item>GMT+08:00|Chinese standard time、Singapore、Ulan Bator</item>
+        <item>GMT+09:00|Seoul、Tokyo、Yakutsk</item>
+        <item>GMT+09:30|Darwin</item>
+        <item>GMT+10:00|Brisbane、Guam、Vladivostok</item>
+        <!--设备没有（GMT+10:30）这个时区-->
+        <!--<item>GMT+10:30|Adelaide</item>-->
+        <item>GMT+11:00|Hobart、Sydney、Magadan</item>
+        <item>GMT+12:00|Fiji</item>
+        <item>GMT+13:00|Auckland、Tongatapu</item>
+        <item>GMT-01:00|Cape Verde</item>
+        <item>GMT-02:00|South Georgia</item>
+        <item>GMT-03:00|Sao paulo、San Diego、Nuuk</item>
+        <item>GMT-03:30|St. John\'s</item>
+        <item>GMT-04:00|Caracas、Barbados、Manaus</item>
+        <item>GMT-05:00|New York、Bogota</item>
+        <item>GMT-06:00|Costa Rica、Chicago、Mexico City、Regina</item>
+        <item>GMT-07:00|Phoenix、Chihuahua、Denver</item>
+        <item>GMT-08:00|Los Angeles、Tijuana</item>
+        <item>GMT-09:00|Anchorage</item>
+        <item>GMT-10:00|Honolulu</item>
+        <item>GMT-11:00|Midway Island</item>
+    </string-array>
+</resources>

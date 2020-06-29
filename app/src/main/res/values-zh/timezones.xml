@@ -1,0 +1,38 @@
+<resources>
+    <string-array name="timezones_array">
+        <item>GMT+00:00|伦敦</item>
+        <item>GMT+01:00|中欧标准时间</item>
+        <item>GMT+02:00|雅典、开罗、耶路撒冷</item>
+        <item>GMT+03:00|莫斯科、巴格达、科威特</item>
+        <item>GMT+03:30|德黑兰</item>
+        <item>GMT+04:00|第比利斯、迪拜、埃里温</item>
+        <item>GMT+04:30|喀布尔</item>
+        <item>GMT+05:00|杜尚别、塔什干、乌拉尔、阿什哈巴德</item>
+        <item>GMT+05:30|加尔各答、科伦坡</item>
+        <item>GMT+05:45|加德满都</item>
+        <item>GMT+06:00|阿拉木图、比什凯尔</item>
+        <item>GMT+06:30|仰光</item>
+        <item>GMT+07:00|卡拉斯诺亚尔斯克、曼谷</item>
+        <item>GMT+08:00|中国标准时间（北京）、新加坡、乌兰巴托</item>
+        <item>GMT+09:00|首尔、东京、雅库茨克</item>
+        <item>GMT+09:30|达尔文</item>
+        <item>GMT+10:00|布里斯班、关岛、符拉迪沃斯托克</item>
+        <!--设备没有（GMT+10:30）这个时区-->
+        <!--<item>GMT+10:30|阿德莱德</item>-->
+        <item>GMT+11:00|霍巴特、悉尼、马加丹</item>
+        <item>GMT+12:00|斐济</item>
+        <item>GMT+13:00|奥克兰、东加塔布</item>
+        <item>GMT-01:00|佛得角</item>
+        <item>GMT-02:00|南乔治亚</item>
+        <item>GMT-03:00|圣保罗、圣地亚哥、戈特霍布</item>
+        <item>GMT-03:30|圣约翰斯</item>
+        <item>GMT-04:00|加拉加斯、巴巴多斯、玛瑙斯</item>
+        <item>GMT-05:00|纽约、波哥大</item>
+        <item>GMT-06:00|哥斯达黎加、芝加哥、墨西哥城、里贾纳</item>
+        <item>GMT-07:00|凤凰城、奇瓦瓦、丹佛</item>
+        <item>GMT-08:00|洛杉矶、蒂华纳</item>
+        <item>GMT-09:00|安克雷奇</item>
+        <item>GMT-10:00|檀香山</item>
+        <item>GMT-11:00|中途岛</item>
+    </string-array>
+</resources>

@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/backgound_color"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:id="@+id/title_lay"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/white">
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:textColor="@color/dark_333333"
+            android:textSize="16dip" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/rl_main_lay"
+        android:layout_width="match_parent"
+        android:layout_height="220dp">
+
+        <com.mn.player.MNPlayControl
+            android:id="@+id/mn_play_control"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        </com.mn.player.MNPlayControl>
+
+        <ImageView
+            android:id="@+id/iv_shrink"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:src="@mipmap/btn_zoom"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/iv_full"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:layout_margin="20dp"
+            android:src="@mipmap/news_list_btn_enlarge" />
+
+        <com.wang.avi.AVLoadingIndicatorView
+            android:id="@+id/av_load"
+            style="@style/AVLoadingIndicatorView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_gravity="center"
+            app:indicatorName="LineSpinFadeLoaderIndicator"
+            app:indicatorColor="@color/title_end" />
+
+        <TextView
+            android:id="@+id/tv_loadTip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:textColor="@color/white"
+            android:textSize="20sp" />
+    </RelativeLayout>
+
+
+    <LinearLayout
+        android:id="@+id/ll_tools_lay"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_below="@+id/mn_play_control"
+        android:background="@color/white"
+        android:orientation="horizontal"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:tag="enable">
+
+        <ImageView
+            android:id="@+id/btnVoice"
+            android:layout_width="0dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:layout_margin="5dp"
+            android:layout_marginLeft="20dp"
+            android:layout_weight="1"
+            android:src="@mipmap/live_list_btn_sound"
+            android:tag="off" />
+
+        <ImageView
+            android:id="@+id/btn_startRecord"
+            android:layout_width="0dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:src="@mipmap/live_list_btn_video"
+            android:tag="off" />
+
+        <ImageView
+            android:id="@+id/btn_SingleTalk"
+            android:layout_width="0dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:src="@mipmap/live_list_btn_voice" />
+
+        <ImageView
+            android:id="@+id/btn_screenshot"
+            android:layout_width="0dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:src="@mipmap/live_list_btn_screenshot" />
+
+        <ImageView
+            android:id="@+id/btn_CodeStream"
+            android:layout_width="0dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:layout_margin="5dp"
+            android:layout_marginRight="20dp"
+            android:layout_weight="1"
+            android:src="@mipmap/live_list_btn_hd"
+            android:tag="0" />
+
+        <FrameLayout
+            android:id="@+id/frame_download_lay"
+            android:layout_width="0dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:layout_margin="5dp"
+            android:layout_marginRight="20dp"
+            android:layout_weight="1">
+
+            <ImageView
+                android:id="@+id/btn_download"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:layout_gravity="center"
+                android:src="@mipmap/live_list_btn_download" />
+
+            <TextView
+                android:id="@+id/tv_progress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center" />
+        </FrameLayout>
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/rl_bottom_main_lay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RelativeLayout
+            android:id="@+id/rl_live_ptz_lay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="visible">
+
+            <TextView
+                android:id="@+id/tv_reset_angle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_marginTop="15dp"
+                android:drawableTop="@mipmap/live_yuntai_list_btn_reset"
+                android:text="@string/tv_reset_angle"
+                android:textColor="@color/dark_333333"
+                android:textSize="14sp" />
+
+            <FrameLayout
+                android:id="@+id/fl_rockerview_screen_bg"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_centerInParent="true"
+                android:background="@mipmap/full_yuntai_rocker_bg"
+                android:visibility="gone">
+
+                <com.kongqw.rockerlibrary.view.RockerView
+                    android:id="@+id/rv_rockerView_screen"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerInParent="true"
+                    app:areaBackground="@mipmap/yuntai_rocker_bg_empty"
+                    app:rockerBackground="@mipmap/full_yuntai_rocker_btn"
+                    app:rockerRadius="30dp" />
+            </FrameLayout>
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/rl_favorites_lay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="40dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginLeft="10dp"
+                    android:text="@string/tv_favorites"
+                    android:textColor="@color/dark_333333"
+                    android:textSize="16sp" />
+
+                <ImageView
+                    android:id="@+id/iv_favorites_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginRight="10dp"
+                    android:src="@mipmap/live_yuntai_list_btn_collect" />
+            </RelativeLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerFavorites"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                </androidx.recyclerview.widget.RecyclerView>
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_favorites_action_lay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tv_del_favorites"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@color/white"
+                    android:gravity="center"
+                    android:text="@string/tv_delete_favorite"
+                    android:textColor="@color/blue_2097fe"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/tv_cover_favorites"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@color/white"
+                    android:gravity="center"
+                    android:text="@string/tv_overwrite_favorites"
+                    android:textColor="@color/blue_2097fe"
+                    android:textSize="18sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_cancel_favorites_action"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@color/blue_2097fe"
+                android:gravity="center"
+                android:text="@string/cancel_text"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_bottom_lay"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_alignParentBottom="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="visible">
+
+            <TextView
+                android:id="@+id/tv_live"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@color/blue_2097fe"
+                android:gravity="center"
+                android:text="@string/tv_live_play"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/tv_favorites"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@color/color_white"
+                android:gravity="center"
+                android:text="@string/tv_favorites"
+                android:textColor="@color/blue_2097fe"
+                android:textSize="18sp" />
+        </LinearLayout>
+    </RelativeLayout>
+
+</LinearLayout>
