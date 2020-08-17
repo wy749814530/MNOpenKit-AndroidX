@@ -20,6 +20,7 @@ public interface OnDownloadListener {
 
     /**
      * 下载失败
+     * @param downloadUrl
      */
-    void onDownloadFailed();
+    void onDownloadFailed(String downloadUrl);
 }

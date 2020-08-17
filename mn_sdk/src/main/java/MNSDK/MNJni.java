@@ -211,13 +211,13 @@ public class MNJni {
     public static native int GetP2pConnectionStatus();
 
     /**
-     * @param uuid:   用户uuid
-     * @param token:  用户token
-     * @param domain: 根据区域确定域名，如果是中国，则传"cn.bullyun.com",如果是美国，为"us.bullyunus.com",如果是印度，为"in.bullyun.com"
-     * @param region: 代表区域的字符串，将用于负载均衡
+     * @param user_id:  用户uuid
+     * @param idm_toke: 用户idm_token
+     * @param domain:   根据区域确定域名，如果是中国，则传"cn.bullyun.com",如果是美国，为"us.bullyunus.com",如果是印度，为"in.bullyun.com"
+     * @param region:   代表区域的字符串，将用于负载均衡
      * @return
      */
-    public static native int Login(String uuid, String token, String domain, String region);
+    public static native int Login(String user_id, String idm_toke, String domain, String region);
 
     public static native int Logout();
 

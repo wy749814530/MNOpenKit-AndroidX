@@ -11,9 +11,12 @@ import android.util.Log;
 import android.view.Gravity;
 
 import com.mn.MNApplication;
+import com.mn.MNRegion;
 import com.mn.bean.restfull.BaseBean;
 import com.mn.bean.restfull.ServerMsgBean;
 import com.mn.bean.restfull.WaitingShareDevBean;
+import com.mn.okhttp3.OkHttpUtils;
+import com.mn.okhttp3.log.LoggerInterceptor;
 import com.mnopensdk.demo.activity.HomeActivity;
 import com.mnopensdk.demo.base.ActivityStack;
 import com.mnopensdk.demo.utils.ToastUtils;
@@ -24,20 +27,17 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.concurrent.TimeUnit;
 
 import MNSDK.MNKit;
 import MNSDK.MNOpenSDK;
 import MNSDK.inface.MNKitInterface;
+import okhttp3.OkHttpClient;
 
 
 public class BaseApplication extends MNApplication {
-    //    public static String APP_KEY = "31cc93923faa4bff";// 公共KEY
-//    public static String APP_SECRET = "f6c9deec31644885a123c8ffb573a52e";
-//    public static String APP_KEY = "e14963f840924b8d";// 龙和
-//    public static String APP_SECRET = "6820e46be69b43b7a782ad00ff17abe0";
-    public static String HOST_DOMAIN = "https://restcn.bullyun.com";
-    public static final String APP_KEY = "8Wa227sQ00S33p4y";// manniu
-    public static final String APP_SECRET = "RlA8aCPlsuATT227kKTg003ncP35HYRI";
+    public static String APP_KEY = "31cc93923faa4bff";// 公共KEY
+    public static String APP_SECRET = "f6c9deec31644885a123c8ffb573a52e";
     private RuleAlertDialog shareDevDlg;
     private MyHandler myHandler = new MyHandler(this);
 
@@ -45,11 +45,20 @@ public class BaseApplication extends MNApplication {
     public void onCreate() {
         super.onCreate();
         // 初始化MNSDK
-        MNOpenSDK.initWithKeyAndSecret(this, APP_KEY, APP_SECRET);
-        // 设置域名
-        MNOpenSDK.setMNKitDomain(this, HOST_DOMAIN);
+        //  HttpsUtils.SSLParams sslParams = HttpsUtils.getSslSocketFactory(null, null, null);
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .connectTimeout(30000L, TimeUnit.MILLISECONDS)
+                .readTimeout(30000L, TimeUnit.MILLISECONDS)
+                .addInterceptor(new LoggerInterceptor("TAG"))
+                /* .cookieJar(cookieJar1)*/
+                .hostnameVerifier((hostname, session) -> true)
+                /*   .sslSocketFactory(sslParams.sSLSocketFactory, sslParams.trustManager)*/
+                .build();
+        OkHttpUtils.initClient(okHttpClient);
+
+        MNOpenSDK.initWithKeyAndSecret(this, APP_KEY, APP_SECRET, MNRegion.CN);
         // 设置需要提前建立与设备的连接
-        MNOpenSDK.setP2pPreLinkState(this, true);
+        MNOpenSDK.setP2pPreLinkState(true);
 
         Log.i("BaseApplication", "" + MNOpenSDK.getSDKVersion());
         mnApplication = this;

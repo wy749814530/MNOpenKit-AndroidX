@@ -13,6 +13,7 @@ public class LoginBean extends BaseBean {
      */
 
     private String access_token;
+    private String idm_token;
     private String user_id;
 
     public String getAccess_token() {
@@ -29,5 +30,13 @@ public class LoginBean extends BaseBean {
 
     public void setUser_id(String user_id) {
         this.user_id = user_id;
+    }
+
+    public void setIdm_token(String idm_token) {
+        this.idm_token = idm_token;
+    }
+
+    public String getIdm_token() {
+        return idm_token;
     }
 }

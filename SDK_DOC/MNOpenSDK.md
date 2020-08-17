@@ -1,4 +1,4 @@
-202006051540.3.0.2
+202008171401.3.0.3
 
 1.MNOpenSDK集成（MNOpenSDK integration）
 ================
@@ -9,7 +9,7 @@
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     //compile project(path: ':mn_sdk')
-    implementation(name: 'mnopensdk-3.0', ext: 'aar')
+    implementation(name: 'mnopensdk-3.0.3', ext: 'aar')
 	......
 	......
 }
@@ -19,23 +19,16 @@ dependencies {
 public class BaseApplication extends MNApplication {
     public static String APP_KEY = "31cc93923faa4bff";// 公共KEY
     public static String APP_SECRET ="f6c9deec31644885a123c8ffb573a52e";
-    public static String HOST_DOMAIN = "https://restcn.bullyun.com";
 
     @Override
     public void onCreate() {
         super.onCreate();
         // 初始化MNSDK(Initialize MNDSK)
-        MNOpenSDK.initWithKeyAndSecret(this, APP_KEY, APP_SECRET);
-        /** 
-        *设置域名,可以在需要切换域名的时候进行设置(Set the domain name, 
-        *you can set it when you need to switch the domain)
-        *(Default domain:https://restcn.bullyun.com)
-        */
-        MNOpenSDK.setMNKitDomain(this, HOST_DOMAIN);
+        MNOpenSDK.initWithKeyAndSecret(this, APP_KEY, APP_SECRET, MNRegion.CN);
         /** 设置是否需要提前建立与设备P2P连接关系（Set whether to 
         * establish a P2P connection with the device in advance）
         */
-        MNOpenSDK.setP2pPreLinkState(this, true);
+        MNOpenSDK.setP2pPreLinkState(true);
     }
     
 	// 服务透传消息，用户可以根据自己需求去实现 

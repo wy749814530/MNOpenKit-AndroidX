@@ -1,11 +1,14 @@
 package MNSDK;
 
+import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.mn.Keyword;
+import com.mn.MNRegion;
 import com.mn.okhttp3.OkHttpUtils;
 import com.mn.okhttp3.https.HttpsUtils;
 import com.mn.okhttp3.log.LoggerInterceptor;
@@ -48,12 +51,9 @@ import com.mn.bean.setting.VideoOptionsNvrBean;
 import com.mn.bean.setting.DevBaseInfoBean;
 import com.mn.tools.LocalDataUtils;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 import MNSDK.inface.MNOpenSDKInterface;
-import okhttp3.OkHttpClient;
 
 import static MNSDK.MNJni.MNDeviceLinkStatusCode.MNDEVICE_LINK_STATUS_CODE_t.MNP2P_SESSION_STATUS_FAILED;
 import static MNSDK.MNJni.MNDeviceLinkStatusCode.MNDEVICE_LINK_STATUS_CODE_t.MNP2P_SESSION_STATUS_UNEXIST;
@@ -87,30 +87,33 @@ public class MNOpenSDK extends BaseSetting {
      * @param appKey    应用分配的appKey
      * @param appSecret 应用分配的appSecret
      */
-    public static void initWithKeyAndSecret(Context context, String appKey, String appSecret) {
-        mContext = context;
+    public static void initWithKeyAndSecret(Application context, String appKey, String appSecret, MNRegion region) {
+        if (context == null) {
+            throw new NullPointerException("Application is null");
+        }
 
+        if (TextUtils.isEmpty(appKey) || TextUtils.isEmpty(appSecret)) {
+            throw new NullPointerException("appKey or appSecret is null");
+        }
+
+        if (region == null) {
+            throw new NullPointerException("MNRegion is null");
+        }
+        mContext = context;
         try {
             SharedPreferences preferences = MNOpenSDK.mContext.getSharedPreferences(TAG, MNOpenSDK.mContext.MODE_PRIVATE);
             SharedPreferences.Editor edit = preferences.edit();
-            edit.putString("mn_appKey", appKey);
-            edit.putString("mn_appSecret", appSecret);
+            edit.putString(Keyword.MN_APP_KEY.name(), appKey);
+            edit.putString(Keyword.MN_APP_SECRET.name(), appSecret);
+            edit.putString(Keyword.MN_DOMAIN.name(), "https://rest" + region.toString() + ".bullyun.com");
+            edit.putString(Keyword.MN_H5_HOST.name(), "https://mall" + region.toString() + ".bullyun.com");
+            edit.putString(Keyword.MN_REGION.name(), region.toString());
             edit.commit();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         MNJni.Init();
-
-        HttpsUtils.SSLParams sslParams = HttpsUtils.getSslSocketFactory(null, null, null);
-        OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                .connectTimeout(30000L, TimeUnit.MILLISECONDS)
-                .readTimeout(30000L, TimeUnit.MILLISECONDS)
-                .addInterceptor(new LoggerInterceptor("TAG"))
-                .hostnameVerifier((hostname, session) -> true)
-                .sslSocketFactory(sslParams.sSLSocketFactory, sslParams.trustManager)
-                .build();
-        OkHttpUtils.initClient(okHttpClient);
     }
 
     /**
@@ -138,7 +141,7 @@ public class MNOpenSDK extends BaseSetting {
         }
         try {
             SharedPreferences preferences = MNOpenSDK.mContext.getSharedPreferences(TAG, MNOpenSDK.mContext.MODE_PRIVATE);
-            tem = preferences.getString("mn_appKey", "");
+            tem = preferences.getString(Keyword.MN_APP_KEY.name(), "");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -158,7 +161,7 @@ public class MNOpenSDK extends BaseSetting {
         }
         try {
             SharedPreferences preferences = MNOpenSDK.mContext.getSharedPreferences(TAG, MNOpenSDK.mContext.MODE_PRIVATE);
-            tem = preferences.getString("mn_appSecret", "");
+            tem = preferences.getString(Keyword.MN_APP_SECRET.name(), "");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -166,38 +169,61 @@ public class MNOpenSDK extends BaseSetting {
     }
 
     /**
-     * 设置域名（Modify the Domain for test）
+     * 获取域名（Get domain name）
+     *
+     * @return 域名（https://restcn.bullyun.com）
      */
-    public static void setMNKitDomain(Context context, String domain) {
-        mContext = context;
+    public static String getDomain() {
+        String tem = "";
+        if (MNOpenSDK.mContext == null) {
+            Log.e("BaseHelper", errMsg);
+            return "";
+        }
         try {
             SharedPreferences preferences = MNOpenSDK.mContext.getSharedPreferences(TAG, MNOpenSDK.mContext.MODE_PRIVATE);
-            SharedPreferences.Editor edit = preferences.edit();
-            edit.putString("mn_domain", domain);
-
-            String domain_host;
-            if (domain.contains("cn")) {
-                //中国
-                domain_host = "cn";
-            } else if (domain.contains("us")) {
-                //美国
-                domain_host = "us";
-            } else if (domain.contains("in")) {
-                //印度
-                domain_host = "in";
-            } else if (domain.contains("te")) {
-                domain_host = "te";
-            } else if (domain.contains("dv")) {
-                domain_host = "dv";
-            } else {
-                domain_host = "cn";
-            }
-            edit.putString("mn_h5server_url", "https://mall" + domain_host + ".bullyun.com");
-            edit.putString("mn_domain", domain);
-            edit.commit();
+            tem = preferences.getString(Keyword.MN_DOMAIN.name(), "https://restcn.bullyun.com");
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return tem;
+    }
+
+    /**
+     * 代表区域的字符串，将用于负载均衡
+     *
+     * @return
+     */
+    public static String getRegion() {
+        String tem = "";
+        if (MNOpenSDK.mContext == null) {
+            Log.e("BaseHelper", errMsg);
+            return "";
+        }
+        try {
+            SharedPreferences preferences = MNOpenSDK.mContext.getSharedPreferences(TAG, MNOpenSDK.mContext.MODE_PRIVATE);
+            tem = preferences.getString(Keyword.MN_REGION.name(), MNRegion.CN.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return tem;
+    }
+
+    /**
+     * @return
+     */
+    public static String getH5ServerUrl() {
+        String tem = "";
+        if (MNOpenSDK.mContext == null) {
+            Log.e("BaseHelper", errMsg);
+            return "";
+        }
+        try {
+            SharedPreferences preferences = MNOpenSDK.mContext.getSharedPreferences(TAG, MNOpenSDK.mContext.MODE_PRIVATE);
+            tem = preferences.getString(Keyword.MN_H5_HOST.name(), "https://mallcn.bullyun.com");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return tem;
     }
 
     /**
@@ -205,8 +231,7 @@ public class MNOpenSDK extends BaseSetting {
      *
      * @param state 是否提前建立与设备的连接关系(Whether to establish a connection relationship with the device in advance)
      */
-    public static void setP2pPreLinkState(Context context, boolean state) {
-        mContext = context;
+    public static void setP2pPreLinkState(boolean state) {
         if (MNOpenSDK.mContext == null) {
             Log.e("BaseHelper", errMsg);
             return;
@@ -214,7 +239,7 @@ public class MNOpenSDK extends BaseSetting {
         try {
             SharedPreferences preferences = MNOpenSDK.mContext.getSharedPreferences(TAG, MNOpenSDK.mContext.MODE_PRIVATE);
             SharedPreferences.Editor edit = preferences.edit();
-            edit.putBoolean("mn_P2pPreLink", state);
+            edit.putBoolean(Keyword.MN_AUTO_P2P_LINK.name(), state);
             edit.commit();
         } catch (Exception e) {
             e.printStackTrace();
@@ -233,57 +258,20 @@ public class MNOpenSDK extends BaseSetting {
         }
         try {
             SharedPreferences preferences = MNOpenSDK.mContext.getSharedPreferences(TAG, MNOpenSDK.mContext.MODE_PRIVATE);
-            return preferences.getBoolean("mn_P2pPreLink", false);
+            return preferences.getBoolean(Keyword.MN_AUTO_P2P_LINK.name(), false);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
     }
 
-    /**
-     * 获取域名（Get domain name）
-     *
-     * @return 域名（https://restcn.bullyun.com）
-     */
-    public static String getDomain() {
-        String tem = "";
-        if (MNOpenSDK.mContext == null) {
-            Log.e("BaseHelper", errMsg);
-            return "";
-        }
-        try {
-            SharedPreferences preferences = MNOpenSDK.mContext.getSharedPreferences(TAG, MNOpenSDK.mContext.MODE_PRIVATE);
-            tem = preferences.getString("mn_domain", "https://restcn.bullyun.com");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return tem;
-    }
-
-    /**
-     * @return
-     */
-    public static String getH5ServerUrl() {
-        String tem = "";
-        if (MNOpenSDK.mContext == null) {
-            Log.e("BaseHelper", errMsg);
-            return "";
-        }
-        try {
-            SharedPreferences preferences = MNOpenSDK.mContext.getSharedPreferences(TAG, MNOpenSDK.mContext.MODE_PRIVATE);
-            tem = preferences.getString("mn_h5server_url", "https://mallcn.bullyun.com");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return tem;
-    }
 
     /**
      * 设置AccessToken（Set AccessToken）
      *
-     * @param token
+     * @param accessToken
      */
-    public static void setAccessToken(String token) {
+    public static void setAccessToken(String accessToken) {
         if (MNOpenSDK.mContext == null) {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
@@ -291,7 +279,7 @@ public class MNOpenSDK extends BaseSetting {
         try {
             SharedPreferences preferences = MNOpenSDK.mContext.getSharedPreferences(MNOpenSDK.TAG, MNOpenSDK.mContext.MODE_PRIVATE);
             SharedPreferences.Editor edit = preferences.edit();
-            edit.putString("mn_AccessToken", token);
+            edit.putString(Keyword.MN_ACCESSTOKEN.name(), accessToken);
             edit.commit();
         } catch (Exception e) {
             e.printStackTrace();
@@ -311,7 +299,7 @@ public class MNOpenSDK extends BaseSetting {
         }
         try {
             SharedPreferences preferences = MNOpenSDK.mContext.getSharedPreferences(TAG, MNOpenSDK.mContext.MODE_PRIVATE);
-            tem = preferences.getString("mn_AccessToken", "");
+            tem = preferences.getString(Keyword.MN_ACCESSTOKEN.name(), "");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -321,55 +309,29 @@ public class MNOpenSDK extends BaseSetting {
     /**
      * 登录ETS与IDM服务，请确保用户已经登录之后调用。
      * 如果已经使用MNKit.loginWithAccount()方法登录的用户不要在调用此方法
+     *
      * @param userId
-     * @param accessToken
+     * @param idm_Token
      */
-    public static void loginEtsAndIdm(String userId, String accessToken) {
+    public static void loginEtsAndIdm(String userId, String idm_Token) {
         if (TextUtils.isEmpty(userId)) {
-            throw new NullPointerException("User ID is empty, please check if the user is logged in.");
+            throw new NullPointerException("UserId is empty, please check if the user is logged in.");
         }
 
-        if (TextUtils.isEmpty(accessToken)) {
-            throw new NullPointerException("AccessToken is empty, please check if the user is logged in.");
+        if (TextUtils.isEmpty(idm_Token)) {
+            throw new NullPointerException("idm_Token is empty, please check if the user is logged in.");
         }
-
-        LocalDataUtils.setUseId(userId);
-        setAccessToken(accessToken);
 
         threadPool.execute(() -> {
-            String host = MNOpenSDK.getDomain();
-            String domain_host;
-            String domain;
-            if (host.contains("cn")) {
-                //中国
-                domain_host = "CN";
-                domain = "cn.bullyun.com";
-            } else if (host.contains("us")) {
-                //美国
-                domain_host = "US";
-                domain = "us.bullyun.com";
-            } else if (host.contains("in")) {
-                //印度
-                domain_host = "IN";
-                domain = "in.bullyun.com";
-            } else if (host.contains("te")) {
-                domain_host = "TE";
-                domain = "te.bullyun.com";
-            } else if (host.contains("DV")) {
-                domain_host = "DV";
-                domain = "dv.bullyun.com";
-            } else {
-                domain_host = "CN";
-                domain = "cn.bullyun.com";
-            }
-            if (TextUtils.isEmpty(host)) {
-                throw new NullPointerException("The domain name is empty, please check the domain name settings.");
+            String region = MNOpenSDK.getRegion();
+            String domain = region + ".bullyun.com";
+
+            if (TextUtils.isEmpty(region)) {
+                throw new NullPointerException("The region name is empty, please check the domain name settings.");
             }
             MNJni.Logout();
-            MNJni.Login(userId, accessToken, domain, domain_host);
+            MNJni.Login(userId, idm_Token, domain, region);
         });
-
-
     }
 
     /**
@@ -417,14 +379,13 @@ public class MNOpenSDK extends BaseSetting {
      * @param callBack     Callback method
      */
     public static void getDeviceLocalVideos(String sn, int channelId, String pszStartTime, String pszEndTime, MNOpenSDKInterface.DeviceLocalVideosCallBack callBack) {
-        WeakReference<MNOpenSDKInterface.DeviceLocalVideosCallBack> weakReference = new WeakReference<>(callBack);
         threadPool.execute(() -> {
             if (!AuthorityManager.isHadLocalVideoAuthority(sn)) {
                 String No_Permission = "{\"found\":0,\"code\":5005,\"msg\":\"Restricted permission\"}";
-                if (mainHandler != null && weakReference != null) {
+                if (mainHandler != null && callBack != null) {
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onDeviceLocalVideos(No_Permission);
+                        if (callBack != null) {
+                            callBack.onDeviceLocalVideos(No_Permission);
                         }
                     });
                 }
@@ -432,10 +393,10 @@ public class MNOpenSDK extends BaseSetting {
                 return;
             }
             String data = MNJni.QueryMicroSDCardAlarms(sn, channelId, 0, 0, pszStartTime, pszEndTime);
-            if (mainHandler != null && weakReference != null) {
+            if (mainHandler != null && callBack != null) {
                 mainHandler.post(() -> {
-                    if (weakReference.get() != null) {
-                        weakReference.get().onDeviceLocalVideos(data);
+                    if (callBack != null) {
+                        callBack.onDeviceLocalVideos(data);
                     }
                 });
             }
@@ -449,16 +410,15 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getDeviceBaseInfo(String sn, MNOpenSDKInterface.GetDeviceBaseInfoCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetDeviceBaseInfoCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 String optionsResult = MNJni.GetDeviceBaseInfo(sn, SDK_TIMEOUT);
                 if (!TextUtils.isEmpty(optionsResult)) {
-                    if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         DevBaseInfoBean mDevBaseInfoBean = new Gson().fromJson(optionsResult, DevBaseInfoBean.class);
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onGetDeviceBaseInfo(mDevBaseInfoBean);
+                            if (callback != null) {
+                                callback.onGetDeviceBaseInfo(mDevBaseInfoBean);
                             }
                         });
                     }
@@ -476,16 +436,15 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getPowerState(String sn, MNOpenSDKInterface.GetPowerStateCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetPowerStateCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 String optionsResult = MNJni.GetPowerState(sn, SDK_TIMEOUT);
                 if (!TextUtils.isEmpty(optionsResult)) {
                     MBatteryBean finalOptionsBean = new Gson().fromJson(optionsResult, MBatteryBean.class);
-                    if (weakReference != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onGetPowerState(finalOptionsBean);
+                            if (callback != null) {
+                                callback.onGetPowerState(finalOptionsBean);
                             }
                         });
                     }
@@ -503,17 +462,16 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getLanguageConfig(String sn, MNOpenSDKInterface.LanguageConfigCallBack callback) {
-        WeakReference<MNOpenSDKInterface.LanguageConfigCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 String getConfig = "{\"method\":\"getConfig\"}";
                 String optionsResult = MNJni.RequestLanguageConfig(sn, getConfig, SDK_TIMEOUT);
                 if (!TextUtils.isEmpty(optionsResult)) {
-                    if (weakReference != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         LanguageBean optionsBean = new Gson().fromJson(optionsResult.trim(), LanguageBean.class);
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onLanguageConfig(optionsBean);
+                            if (callback != null) {
+                                callback.onLanguageConfig(optionsBean);
                             }
                         });
                     }
@@ -532,18 +490,17 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void setLanguageConfig(String sn, String language, MNOpenSDKInterface.SetLanguageConfigCallBack callback) {
-        WeakReference<MNOpenSDKInterface.SetLanguageConfigCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                    if (weakReference != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         BaseResult baseResult = new BaseResult();
                         baseResult.setResult(false);
                         baseResult.setCode(5005);
                         baseResult.setMsg("Restricted permission");
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onSetLanguageConfig(baseResult);
+                            if (callback != null) {
+                                callback.onSetLanguageConfig(baseResult);
                             }
                         });
                     }
@@ -557,10 +514,10 @@ public class MNOpenSDK extends BaseSetting {
                     optionsBean = new Gson().fromJson(optionsResult.trim(), BaseResult.class);
                 }
                 BaseResult finalOptionsBean = optionsBean;
-                if (weakReference != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onSetLanguageConfig(finalOptionsBean);
+                        if (callback != null) {
+                            callback.onSetLanguageConfig(finalOptionsBean);
                         }
                     });
                 }
@@ -577,7 +534,6 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getVideoStandard(String sn, MNOpenSDKInterface.VideoStandardConfigCallBack callback) {
-        WeakReference<MNOpenSDKInterface.VideoStandardConfigCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 DevStandardBean optionsBean = null;
@@ -586,10 +542,10 @@ public class MNOpenSDK extends BaseSetting {
                     optionsBean = new Gson().fromJson(optionsResult.trim(), DevStandardBean.class);
                 }
                 DevStandardBean finalOptionsBean = optionsBean;
-                if (weakReference != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onVideoStandardConfig(finalOptionsBean);
+                        if (callback != null) {
+                            callback.onVideoStandardConfig(finalOptionsBean);
                         }
                     });
                 }
@@ -606,7 +562,6 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getAudioOutputVolume(String sn, MNOpenSDKInterface.GetAudioOutputCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetAudioOutputCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 AudioOutputBean audioOptions = null;
@@ -616,10 +571,10 @@ public class MNOpenSDK extends BaseSetting {
                     audioOptions = new Gson().fromJson(optionsResult, AudioOutputBean.class);
                 }
                 AudioOutputBean finalAudioOptions = audioOptions;
-                if (weakReference != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetAudioOutput(finalAudioOptions);
+                        if (callback != null) {
+                            callback.onGetAudioOutput(finalAudioOptions);
                         }
                     });
                 }
@@ -637,18 +592,17 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void setAudioOutputVolume(String sn, AudioOutputSetBean aovBean, MNOpenSDKInterface.SetAudioOutputCallBack callback) {
-        WeakReference<MNOpenSDKInterface.SetAudioOutputCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                    if (weakReference != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         BaseResult baseResult = new BaseResult();
                         baseResult.setResult(false);
                         baseResult.setCode(5005);
                         baseResult.setMsg("Restricted permission");
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onSetAudioOutput(baseResult);
+                            if (callback != null) {
+                                callback.onSetAudioOutput(baseResult);
                             }
                         });
                     }
@@ -662,10 +616,10 @@ public class MNOpenSDK extends BaseSetting {
                     audioOptions = new Gson().fromJson(optionsResult, BaseResult.class);
                 }
                 BaseResult finalAudioOptions = audioOptions;
-                if (weakReference != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onSetAudioOutput(finalAudioOptions);
+                        if (callback != null) {
+                            callback.onSetAudioOutput(finalAudioOptions);
                         }
                     });
                 }
@@ -683,7 +637,6 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getNvrAudioOutputVolume(String sn, int[] channels, MNOpenSDKInterface.GetNvrAudioOutputCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetNvrAudioOutputCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 AudioOutputNvrBean audioOptions = null;
@@ -693,10 +646,10 @@ public class MNOpenSDK extends BaseSetting {
                     audioOptions = new Gson().fromJson(videoOptionsResult, AudioOutputNvrBean.class);
                 }
                 AudioOutputNvrBean finalAudioOptions = audioOptions;
-                if (weakReference != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetNvrAudioOutput(finalAudioOptions);
+                        if (callback != null) {
+                            callback.onGetNvrAudioOutput(finalAudioOptions);
                         }
                     });
                 }
@@ -714,18 +667,17 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void setNvrAudioOutputVolume(String sn, ArrayList<AudioOutputSetBean> aovBeans, MNOpenSDKInterface.SetNvrAudioOutputCallBack callback) {
-        WeakReference<MNOpenSDKInterface.SetNvrAudioOutputCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                    if (weakReference != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         DevSetMoreBaseBean baseResult = new DevSetMoreBaseBean();
                         baseResult.setResult(false);
                         baseResult.setCode(5005);
                         baseResult.setMsg("Restricted permission");
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onSetNvrAudioOutput(baseResult);
+                            if (callback != null) {
+                                callback.onSetNvrAudioOutput(baseResult);
                             }
                         });
                     }
@@ -739,10 +691,10 @@ public class MNOpenSDK extends BaseSetting {
                     audioOptions = new Gson().fromJson(videoOptionsResult, DevSetMoreBaseBean.class);
                 }
                 DevSetMoreBaseBean finalAudioOptions = audioOptions;
-                if (weakReference != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onSetNvrAudioOutput(finalAudioOptions);
+                        if (callback != null) {
+                            callback.onSetNvrAudioOutput(finalAudioOptions);
                         }
                     });
                 }
@@ -760,7 +712,6 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getSoundModeConfig(String sn, MNOpenSDKInterface.GetSoundModeConfigCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetSoundModeConfigCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 DevSoundBean soundOptions = null;
@@ -770,10 +721,10 @@ public class MNOpenSDK extends BaseSetting {
                     soundOptions = new Gson().fromJson(optionsResult.trim(), DevSoundBean.class);
                 }
                 DevSoundBean finalSoundOptions = soundOptions;
-                if (weakReference != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetSoundModeConfig(finalSoundOptions);
+                        if (callback != null) {
+                            callback.onGetSoundModeConfig(finalSoundOptions);
                         }
                     });
                 }
@@ -792,18 +743,17 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback    Callback method
      */
     public static void setSoundModeConfig(String sn, boolean silentMode, boolean voiceEnable, MNOpenSDKInterface.SetSoundModeConfigCallBack callback) {
-        WeakReference<MNOpenSDKInterface.SetSoundModeConfigCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                    if (weakReference != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         BaseResult baseResult = new BaseResult();
                         baseResult.setResult(false);
                         baseResult.setCode(5005);
                         baseResult.setMsg("Restricted permission");
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onSetSoundModeConfig(baseResult);
+                            if (callback != null) {
+                                callback.onSetSoundModeConfig(baseResult);
                             }
                         });
                     }
@@ -817,10 +767,10 @@ public class MNOpenSDK extends BaseSetting {
                     soundOptions = new Gson().fromJson(optionsResult.trim(), BaseResult.class);
                 }
                 BaseResult finalSoundOptions = soundOptions;
-                if (weakReference != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onSetSoundModeConfig(finalSoundOptions);
+                        if (callback != null) {
+                            callback.onSetSoundModeConfig(finalSoundOptions);
                         }
                     });
                 }
@@ -838,7 +788,6 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getTimeZoneConfig(String sn, MNOpenSDKInterface.GetTimeZoneConfigCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetTimeZoneConfigCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 TimeZoneBean optionsBean = null;
@@ -848,10 +797,10 @@ public class MNOpenSDK extends BaseSetting {
                     optionsBean = new Gson().fromJson(optionsResult.trim(), TimeZoneBean.class);
                 }
                 TimeZoneBean finalOptionsBean = optionsBean;
-                if (weakReference != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetTimeZoneConfig(finalOptionsBean);
+                        if (callback != null) {
+                            callback.onGetTimeZoneConfig(finalOptionsBean);
                         }
                     });
                 }
@@ -869,18 +818,17 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void setTimeZoneConfig(String sn, int timeZone, MNOpenSDKInterface.SetTimeZoneConfigCallBack callback) {
-        WeakReference<MNOpenSDKInterface.SetTimeZoneConfigCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                    if (weakReference != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         BaseResult baseResult = new BaseResult();
                         baseResult.setResult(false);
                         baseResult.setCode(5005);
                         baseResult.setMsg("Restricted permission");
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onSetTimeZoneConfig(baseResult);
+                            if (callback != null) {
+                                callback.onSetTimeZoneConfig(baseResult);
                             }
                         });
                     }
@@ -894,10 +842,10 @@ public class MNOpenSDK extends BaseSetting {
                     optionsBean = new Gson().fromJson(optionsResult.trim(), BaseResult.class);
                 }
                 BaseResult finalOptionsBean = optionsBean;
-                if (weakReference != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onSetTimeZoneConfig(finalOptionsBean);
+                        if (callback != null) {
+                            callback.onSetTimeZoneConfig(finalOptionsBean);
                         }
                     });
                 }
@@ -914,7 +862,6 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getSummerTimeConfig(String sn, MNOpenSDKInterface.GetSummerTimeConfigCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetSummerTimeConfigCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 LocalesConfigBean optionsBean = null;
@@ -924,10 +871,10 @@ public class MNOpenSDK extends BaseSetting {
                     optionsBean = new Gson().fromJson(optionsResult.trim(), LocalesConfigBean.class);
                 }
                 LocalesConfigBean finalOptionsBean = optionsBean;
-                if (weakReference != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetSummerTimeConfig(finalOptionsBean);
+                        if (callback != null) {
+                            callback.onGetSummerTimeConfig(finalOptionsBean);
                         }
                     });
                 }
@@ -945,18 +892,17 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback  Callback method
      */
     public static void setSummerTimeConfig(String sn, boolean DSTEnable, MNOpenSDKInterface.SetSummerTimeConfigCallBack callback) {
-        WeakReference<MNOpenSDKInterface.SetSummerTimeConfigCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                    if (weakReference != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         BaseResult baseResult = new BaseResult();
                         baseResult.setResult(false);
                         baseResult.setCode(5005);
                         baseResult.setMsg("Restricted permission");
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onSetSummerTimeConfig(baseResult);
+                            if (callback != null) {
+                                callback.onSetSummerTimeConfig(baseResult);
                             }
                         });
                     }
@@ -970,10 +916,10 @@ public class MNOpenSDK extends BaseSetting {
                     optionsBean = new Gson().fromJson(optionsResult.trim(), BaseResult.class);
                 }
                 BaseResult finalOptionsBean = optionsBean;
-                if (weakReference != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onSetSummerTimeConfig(finalOptionsBean);
+                        if (callback != null) {
+                            callback.onSetSummerTimeConfig(finalOptionsBean);
                         }
                     });
                 }
@@ -990,7 +936,6 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getNetLightConfig(String sn, MNOpenSDKInterface.GetNetLightCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetNetLightCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 NetLightCallBean mNetLightCallBean = null;
@@ -999,11 +944,11 @@ public class MNOpenSDK extends BaseSetting {
                 if (!TextUtils.isEmpty(optionsResult)) {
                     mNetLightCallBean = new Gson().fromJson(optionsResult, NetLightCallBean.class);
                 }
-                if (weakReference != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     NetLightCallBean finalMNetLightCallBean = mNetLightCallBean;
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetNetLight(finalMNetLightCallBean);
+                        if (callback != null) {
+                            callback.onGetNetLight(finalMNetLightCallBean);
                         }
                     });
                 }
@@ -1021,18 +966,17 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void setNetLightConfig(String sn, boolean netLight, MNOpenSDKInterface.SetNetLightCallBack callback) {
-        WeakReference<MNOpenSDKInterface.SetNetLightCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                    if (weakReference != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         BaseResult baseResult = new BaseResult();
                         baseResult.setResult(false);
                         baseResult.setCode(5005);
                         baseResult.setMsg("Restricted permission");
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onSetNetLight(baseResult);
+                            if (callback != null) {
+                                callback.onSetNetLight(baseResult);
                             }
                         });
                     }
@@ -1042,10 +986,10 @@ public class MNOpenSDK extends BaseSetting {
                 String getConfig = "{\"method\":\"setConfig\",\"params\":{\"NetLight\" :" + netLight + "}}";
                 String optionsResult = MNJni.RequestNetLight(sn, getConfig, SDK_TIMEOUT);
                 BaseResult options = new Gson().fromJson(optionsResult, BaseResult.class);
-                if (weakReference != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onSetNetLight(options);
+                        if (callback != null) {
+                            callback.onSetNetLight(options);
                         }
                     });
                 }
@@ -1062,16 +1006,15 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getBLCConfig(String sn, MNOpenSDKInterface.GetBLCConfigCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetBLCConfigCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 String getConfig = "{\"method\":\"getConfig\"}";
                 String optionsResult = MNJni.RequestLightCompensationConfig(sn, getConfig, 10);
                 BLCConfigBean options = new Gson().fromJson(optionsResult, BLCConfigBean.class);
-                if (weakReference != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetBLCConfig(options);
+                        if (callback != null) {
+                            callback.onGetBLCConfig(options);
                         }
                     });
                 }
@@ -1090,18 +1033,17 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback       Callback method
      */
     public static void setBLCConfig(String sn, boolean LightEnable, int LightSensitive, MNOpenSDKInterface.SetBLCConfigCallBack callback) {
-        WeakReference<MNOpenSDKInterface.SetBLCConfigCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                    if (weakReference != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         BaseResult baseResult = new BaseResult();
                         baseResult.setResult(false);
                         baseResult.setCode(5005);
                         baseResult.setMsg("Restricted permission");
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onSetBLCConfig(baseResult);
+                            if (callback != null) {
+                                callback.onSetBLCConfig(baseResult);
                             }
                         });
                     }
@@ -1110,11 +1052,11 @@ public class MNOpenSDK extends BaseSetting {
 
                 String serConfig = "{\"method\":\"setConfig\",\"params\":{\"LightEnable\":" + LightEnable + ",\"LightSensitive\":" + LightSensitive + "}}";
                 String optionsResult = MNJni.RequestLightCompensationConfig(sn, serConfig, 10);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     BaseResult lightCompensationBean = new Gson().fromJson(optionsResult, BaseResult.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onSetBLCConfig(lightCompensationBean);
+                        if (callback != null) {
+                            callback.onSetBLCConfig(lightCompensationBean);
                         }
                     });
                 }
@@ -1132,16 +1074,15 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getVideoInOptions(String sn, MNOpenSDKInterface.GetVideoInOptionsCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetVideoInOptionsCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 String getConfig = "{\"method\":\"getConfig\"}";
                 String optionsResult = MNJni.RequestVideoInOptions(sn, getConfig, SDK_TIMEOUT);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     VideoOptionsBean options = new Gson().fromJson(optionsResult.trim(), VideoOptionsBean.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetVideoInOptions(options);
+                        if (callback != null) {
+                            callback.onGetVideoInOptions(options);
                         }
                     });
                 }
@@ -1160,18 +1101,17 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback  Callback method
      */
     public static void setVideoInOptions(String sn, VideoInOptBean inOptBean, MNOpenSDKInterface.SetVideoInOptionsCallBack callback) {
-        WeakReference<MNOpenSDKInterface.SetVideoInOptionsCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                    if (weakReference != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         BaseResult baseResult = new BaseResult();
                         baseResult.setResult(false);
                         baseResult.setCode(5005);
                         baseResult.setMsg("Restricted permission");
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onSetVideoInOptions(baseResult);
+                            if (callback != null) {
+                                callback.onSetVideoInOptions(baseResult);
                             }
                         });
                     }
@@ -1181,11 +1121,11 @@ public class MNOpenSDK extends BaseSetting {
 
                 String setConfig = "{\"method\":\"setConfig\",\"params\":" + new Gson().toJson(inOptBean) + "}";
                 String optionsResult = MNJni.RequestVideoInOptions(sn, setConfig, SDK_TIMEOUT);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     BaseResult optionsBean = new Gson().fromJson(optionsResult.trim(), BaseResult.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onSetVideoInOptions(optionsBean);
+                        if (callback != null) {
+                            callback.onSetVideoInOptions(optionsBean);
                         }
                     });
                 }
@@ -1204,16 +1144,15 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getNvrVideoInOptions(String sn, int[] channels, MNOpenSDKInterface.GetNvrVideoInOptionsCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetNvrVideoInOptionsCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 String getConfig = "{\"method\":\"getConfig\",\"channel\":" + arrayInt2String(channels) + "}";
                 String videoOptionsResult = MNJni.RequestVideoInOptions(sn, getConfig, SDK_TIMEOUT);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     VideoOptionsNvrBean optionsBean = new Gson().fromJson(videoOptionsResult.trim(), VideoOptionsNvrBean.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetNvrVideoInOptions(optionsBean);
+                        if (callback != null) {
+                            callback.onGetNvrVideoInOptions(optionsBean);
                         }
                     });
                 }
@@ -1231,18 +1170,17 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback   Callback method
      */
     public static void setNvrVideoInOptions(String sn, ArrayList<VideoInOptBean> inOptBeans, MNOpenSDKInterface.SetNvrVideoInOptionsCallBack callback) {
-        WeakReference<MNOpenSDKInterface.SetNvrVideoInOptionsCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                    if (weakReference != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         DevSetMoreBaseBean baseResult = new DevSetMoreBaseBean();
                         baseResult.setResult(false);
                         baseResult.setCode(5005);
                         baseResult.setMsg("Restricted permission");
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onSetNvrVideoInOptions(baseResult);
+                            if (callback != null) {
+                                callback.onSetNvrVideoInOptions(baseResult);
                             }
                         });
                     }
@@ -1251,11 +1189,11 @@ public class MNOpenSDK extends BaseSetting {
 
                 String setConfig = "{\"method\":\"setConfig\",\"params\":" + new Gson().toJson(inOptBeans) + "}";
                 String videoOptionsResult = MNJni.RequestVideoInOptions(sn, setConfig, SDK_TIMEOUT);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     DevSetMoreBaseBean finalVideoOptions = new Gson().fromJson(videoOptionsResult.trim(), DevSetMoreBaseBean.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onSetNvrVideoInOptions(finalVideoOptions);
+                        if (callback != null) {
+                            callback.onSetNvrVideoInOptions(finalVideoOptions);
                         }
                     });
                 }
@@ -1273,16 +1211,15 @@ public class MNOpenSDK extends BaseSetting {
      */
 
     public static void getAlarmAsossiatedConfig(String sn, MNOpenSDKInterface.GetAlarmAsossiatedConfigCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetAlarmAsossiatedConfigCallBack> weakReference = new WeakReference<>(callback);
         try {
             threadPool.execute(() -> {
                 String getConfig = "{\"method\":\"getConfig\"}";
                 String optionsResult = MNJni.RequestAlarmAsossiatedConfig(sn, getConfig, 10);
-                if (mainHandler != null && weakReference != null && weakReference.get() != null) {
+                if (mainHandler != null && callback != null) {
                     AlarmAsossiatedBean alartBean = new Gson().fromJson(optionsResult, AlarmAsossiatedBean.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetAlarmAsossiatedConfig(alartBean);
+                        if (callback != null) {
+                            callback.onGetAlarmAsossiatedConfig(alartBean);
                         }
                     });
                 }
@@ -1301,17 +1238,16 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback    Callback method
      */
     public static void setAlarmAsossiatedConfig(String sn, int LightType, boolean audioEnable, MNOpenSDKInterface.SetAlarmAsossiatedConfigCallBack callback) {
-        WeakReference<MNOpenSDKInterface.SetAlarmAsossiatedConfigCallBack> weakReference = new WeakReference<>(callback);
         try {
             if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                if (weakReference != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     BaseResult baseResult = new BaseResult();
                     baseResult.setResult(false);
                     baseResult.setCode(5005);
                     baseResult.setMsg("Restricted permission");
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onSetAlarmAsossiatedConfig(baseResult);
+                        if (callback != null) {
+                            callback.onSetAlarmAsossiatedConfig(baseResult);
                         }
                     });
                 }
@@ -1321,11 +1257,11 @@ public class MNOpenSDK extends BaseSetting {
             threadPool.execute(() -> {
                 String getConfig = "{\"method\":\"setConfig\",\"params\":{\"LightType\":" + LightType + ",\"LightSeconds\":60" + ",\"AudioEnable\":" + audioEnable + "}}";
                 String optionsResult = MNJni.RequestAlarmAsossiatedConfig(sn, getConfig, 10);
-                if (mainHandler != null && weakReference != null && weakReference.get() != null) {
+                if (mainHandler != null && callback != null) {
                     BaseResult alartBean = new Gson().fromJson(optionsResult, BaseResult.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onSetAlarmAsossiatedConfig(alartBean);
+                        if (callback != null) {
+                            callback.onSetAlarmAsossiatedConfig(alartBean);
                         }
                     });
                 }
@@ -1342,15 +1278,14 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getTFStateConfig(String sn, MNOpenSDKInterface.GetTFStorageCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetTFStorageCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 String optionsResult = MNJni.GetTFState(sn, 15);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     TFStateConfigBean options = new Gson().fromJson(optionsResult.trim(), TFStateConfigBean.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetTFStorage(options);
+                        if (callback != null) {
+                            callback.onGetTFStorage(options);
                         }
                     });
                 }
@@ -1367,15 +1302,14 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getTFSimpleState(String sn, MNOpenSDKInterface.GetTFSimpleStateCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetTFSimpleStateCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 String optionsResult = MNJni.GetTFSimpleState(sn, 15);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     TFStateBean options = new Gson().fromJson(optionsResult.trim(), TFStateBean.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetTFSimpleState(options);
+                        if (callback != null) {
+                            callback.onGetTFSimpleState(options);
                         }
                     });
                 }
@@ -1394,18 +1328,17 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void setTFStorageFormatting(String sn, String tfName, MNOpenSDKInterface.TFStorageFormatCallBack callback) {
-        WeakReference<MNOpenSDKInterface.TFStorageFormatCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                    if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         BaseResult baseResult = new BaseResult();
                         baseResult.setResult(false);
                         baseResult.setCode(5005);
                         baseResult.setMsg("Restricted permission");
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onTFStorageFormat(baseResult);
+                            if (callback != null) {
+                                callback.onTFStorageFormat(baseResult);
                             }
                         });
                     }
@@ -1415,10 +1348,10 @@ public class MNOpenSDK extends BaseSetting {
                 String pszCommand = "{\"Name\":\"" + tfName + " \",\"Part\" : " + 0 + "}";
                 String optionsResult = MNJni.SetTFStorageFormatting(sn, pszCommand, 60);
                 BaseResult finalOptionsBean = new Gson().fromJson(optionsResult.trim(), BaseResult.class);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onTFStorageFormat(finalOptionsBean);
+                        if (callback != null) {
+                            callback.onTFStorageFormat(finalOptionsBean);
                         }
                     });
                 }
@@ -1436,16 +1369,15 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getAlarmRecord(String sn, MNOpenSDKInterface.GetAlarmRecordCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetAlarmRecordCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 String getConfig = "{\"method\":\"getConfig\"}";
                 String optionsResult = MNJni.RequestAlarmRecord(sn, getConfig, SDK_TIMEOUT);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     AlarmTimeRecordBean options = new Gson().fromJson(optionsResult.trim(), AlarmTimeRecordBean.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetAlarmRecord(options);
+                        if (callback != null) {
+                            callback.onGetAlarmRecord(options);
                         }
                     });
                 }
@@ -1464,18 +1396,17 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback       Callback method
      */
     public static void setAlarmRecord(String sn, boolean isAllDayRecord, MNOpenSDKInterface.SetAlarmRecordCallBack callback) {
-        WeakReference<MNOpenSDKInterface.SetAlarmRecordCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                    if (weakReference != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         BaseResult baseResult = new BaseResult();
                         baseResult.setResult(false);
                         baseResult.setCode(5005);
                         baseResult.setMsg("Restricted permission");
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onSetAlarmRecord(baseResult);
+                            if (callback != null) {
+                                callback.onSetAlarmRecord(baseResult);
                             }
                         });
                     }
@@ -1484,11 +1415,11 @@ public class MNOpenSDK extends BaseSetting {
 
                 String getConfig = "{\"method\":\"setConfig\",\"params\":{\"AllDayRecord\":" + isAllDayRecord + "}}";
                 String optionsResult = MNJni.RequestAlarmRecord(sn, getConfig, 10);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     BaseResult options = new Gson().fromJson(optionsResult.trim(), BaseResult.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onSetAlarmRecord(options);
+                        if (callback != null) {
+                            callback.onSetAlarmRecord(options);
                         }
                     });
                 }
@@ -1507,16 +1438,15 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getNvrAlarmRecord(String sn, int[] channels, MNOpenSDKInterface.GetNvrAlarmRecordCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetNvrAlarmRecordCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 String getConfig = "{\"method\":\"getConfig\",\"channel\":" + arrayInt2String(channels) + "}";
                 String videoOptionsResult = MNJni.RequestAlarmRecord(sn, getConfig, SDK_TIMEOUT);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     AlarmTimeRecordNvrBean options = new Gson().fromJson(videoOptionsResult.trim(), AlarmTimeRecordNvrBean.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetNvrAlarmRecord(options);
+                        if (callback != null) {
+                            callback.onGetNvrAlarmRecord(options);
                         }
                     });
                 }
@@ -1534,18 +1464,17 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback     Callback method
      */
     public static void setNvrAlarmRecord(String sn, ArrayList<SetAlarmRecordBean> alarmRecords, MNOpenSDKInterface.SetNvrAlarmRecordCallBack callback) {
-        WeakReference<MNOpenSDKInterface.SetNvrAlarmRecordCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                    if (weakReference != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         DevSetMoreBaseBean baseResult = new DevSetMoreBaseBean();
                         baseResult.setResult(false);
                         baseResult.setCode(5005);
                         baseResult.setMsg("Restricted permission");
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onSetNvrAlarmRecord(baseResult);
+                            if (callback != null) {
+                                callback.onSetNvrAlarmRecord(baseResult);
                             }
                         });
                     }
@@ -1554,11 +1483,11 @@ public class MNOpenSDK extends BaseSetting {
 
                 String getConfig = "{\"method\":\"setConfig\",\"params\":" + new Gson().toJson(alarmRecords) + "}";
                 String videoOptionsResult = MNJni.RequestAlarmRecord(sn, getConfig, SDK_TIMEOUT);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     DevSetMoreBaseBean options = new Gson().fromJson(videoOptionsResult.trim(), DevSetMoreBaseBean.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onSetNvrAlarmRecord(options);
+                        if (callback != null) {
+                            callback.onSetNvrAlarmRecord(options);
                         }
                     });
                 }
@@ -1576,16 +1505,15 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getMotionDetectConfig(String sn, MNOpenSDKInterface.GetMotionDetectCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetMotionDetectCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 String getConfig = "{\"method\":\"getConfig\"}";
                 String optionsResult = MNJni.RequestMotionDetect(sn, getConfig, SDK_TIMEOUT);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     MotionDetectBean finalOptionsBean = new Gson().fromJson(optionsResult.trim(), MotionDetectBean.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetMotionDetect(finalOptionsBean);
+                        if (callback != null) {
+                            callback.onGetMotionDetect(finalOptionsBean);
                         }
                     });
                 }
@@ -1604,18 +1532,17 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback     Callback method
      */
     public static void setMotionDetectConfig(String sn, int sensitivity, boolean motionDetect, MNOpenSDKInterface.SetMotionDetectCallBack callback) {
-        WeakReference<MNOpenSDKInterface.SetMotionDetectCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                    if (weakReference != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         BaseResult baseResult = new BaseResult();
                         baseResult.setResult(false);
                         baseResult.setCode(5005);
                         baseResult.setMsg("Restricted permission");
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onSetMotionDetect(baseResult);
+                            if (callback != null) {
+                                callback.onSetMotionDetect(baseResult);
                             }
                         });
                     }
@@ -1624,11 +1551,11 @@ public class MNOpenSDK extends BaseSetting {
 
                 String getConfig = "{\"method\":\"setConfig\",\"params\":{\"Sensitivity\" :" + sensitivity + ",\"MotionDetect\":" + motionDetect + "}}";
                 String optionsResult = MNJni.RequestMotionDetect(sn, getConfig, SDK_TIMEOUT);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     BaseResult finalOptionsBean = new Gson().fromJson(optionsResult.trim(), BaseResult.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onSetMotionDetect(finalOptionsBean);
+                        if (callback != null) {
+                            callback.onSetMotionDetect(finalOptionsBean);
                         }
                     });
                 }
@@ -1647,16 +1574,15 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getNVRMotionDetectConfig(String sn, int[] channels, MNOpenSDKInterface.GetNVRMotionDetectCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetNVRMotionDetectCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 String getConfig = "{\"method\":\"getConfig\",\"channel\":" + arrayInt2String(channels) + "}";
                 String optionsResult = MNJni.RequestMotionDetect(sn, getConfig, SDK_TIMEOUT);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     MotionDetectNvrBean finalOptionsBean = new Gson().fromJson(optionsResult.trim(), MotionDetectNvrBean.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetNVRMotionDetect(finalOptionsBean);
+                        if (callback != null) {
+                            callback.onGetNVRMotionDetect(finalOptionsBean);
                         }
                     });
                 }
@@ -1674,18 +1600,17 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback      Callback method
      */
     public static void setNVRMotionDetectConfig(String sn, ArrayList<MotionDetect> motionDetects, MNOpenSDKInterface.SetNVRMotionDetectCallBack callback) {
-        WeakReference<MNOpenSDKInterface.SetNVRMotionDetectCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                    if (weakReference != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         DevSetMoreBaseBean baseResult = new DevSetMoreBaseBean();
                         baseResult.setResult(false);
                         baseResult.setCode(5005);
                         baseResult.setMsg("Restricted permission");
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onSetNVRMotionDetect(baseResult);
+                            if (callback != null) {
+                                callback.onSetNVRMotionDetect(baseResult);
                             }
                         });
                     }
@@ -1694,11 +1619,11 @@ public class MNOpenSDK extends BaseSetting {
 
                 String getConfig = "{\"method\":\"setConfig\",\"params\":" + new Gson().toJson(motionDetects) + "}";
                 String optionsResult = MNJni.RequestMotionDetect(sn, getConfig, SDK_TIMEOUT);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     DevSetMoreBaseBean finalOptionsBean = new Gson().fromJson(optionsResult.trim(), DevSetMoreBaseBean.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onSetNVRMotionDetect(finalOptionsBean);
+                        if (callback != null) {
+                            callback.onSetNVRMotionDetect(finalOptionsBean);
                         }
                     });
                 }
@@ -1716,16 +1641,15 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getFaceDetectConfig(String sn, MNOpenSDKInterface.GetFaceDetectCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetFaceDetectCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 String getConfig = "{\"method\":\"getConfig\"}";
                 String optionsResult = MNJni.RequestFaceDetect(sn, getConfig, SDK_TIMEOUT);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     FaceDetectBean finalOptionsBean = new Gson().fromJson(optionsResult, FaceDetectBean.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetFaceDetect(finalOptionsBean);
+                        if (callback != null) {
+                            callback.onGetFaceDetect(finalOptionsBean);
                         }
                     });
                 }
@@ -1743,18 +1667,17 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback      Callback method
      */
     public static void setFaceDetectConfig(String sn, boolean faceDetection, MNOpenSDKInterface.SetFaceDetectCallBack callback) {
-        WeakReference<MNOpenSDKInterface.SetFaceDetectCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                    if (weakReference != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         BaseResult baseResult = new BaseResult();
                         baseResult.setResult(false);
                         baseResult.setCode(5005);
                         baseResult.setMsg("Restricted permission");
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onSetFaceDetect(baseResult);
+                            if (callback != null) {
+                                callback.onSetFaceDetect(baseResult);
                             }
                         });
                     }
@@ -1763,11 +1686,11 @@ public class MNOpenSDK extends BaseSetting {
 
                 String getConfig = "{\"method\":\"setConfig\",\"params\":{\"FaceDetection\":" + faceDetection + "}}";
                 String optionsResult = MNJni.RequestFaceDetect(sn, getConfig, SDK_TIMEOUT);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     BaseResult finalOptionsBean = new Gson().fromJson(optionsResult, BaseResult.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onSetFaceDetect(finalOptionsBean);
+                        if (callback != null) {
+                            callback.onSetFaceDetect(finalOptionsBean);
                         }
                     });
                 }
@@ -1786,16 +1709,15 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getNvrFaceDetectConfig(String sn, int[] channels, MNOpenSDKInterface.GetNvrFaceDetectCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetNvrFaceDetectCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 String getConfig = "{\"method\":\"getConfig\",\"channel\":" + arrayInt2String(channels) + "}";
                 String optionsResult = MNJni.RequestFaceDetect(sn, getConfig, SDK_TIMEOUT);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     FaceDetectNvrBean finalOptionsBean = new Gson().fromJson(optionsResult, FaceDetectNvrBean.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetNvrFaceDetect(finalOptionsBean);
+                        if (callback != null) {
+                            callback.onGetNvrFaceDetect(finalOptionsBean);
                         }
                     });
                 }
@@ -1813,18 +1735,17 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback  Callback method
      */
     public static void setNvrFaceDetectConfig(String sn, ArrayList<FaceBean> faceBeans, MNOpenSDKInterface.SetNvrFaceDetectCallBack callback) {
-        WeakReference<MNOpenSDKInterface.SetNvrFaceDetectCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                    if (weakReference != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         DevSetMoreBaseBean baseResult = new DevSetMoreBaseBean();
                         baseResult.setResult(false);
                         baseResult.setCode(5005);
                         baseResult.setMsg("Restricted permission");
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onSetNvrFaceDetect(baseResult);
+                            if (callback != null) {
+                                callback.onSetNvrFaceDetect(baseResult);
                             }
                         });
                     }
@@ -1833,11 +1754,11 @@ public class MNOpenSDK extends BaseSetting {
 
                 String getConfig = "{\"method\":\"setConfig\",\"params\":" + new Gson().toJson(faceBeans) + "}";
                 String optionsResult = MNJni.RequestFaceDetect(sn, getConfig, SDK_TIMEOUT);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     DevSetMoreBaseBean finalOptionsBean = new Gson().fromJson(optionsResult.trim(), DevSetMoreBaseBean.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onSetNvrFaceDetect(finalOptionsBean);
+                        if (callback != null) {
+                            callback.onSetNvrFaceDetect(finalOptionsBean);
                         }
                     });
                 }
@@ -1855,7 +1776,6 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getMotionTrackConfig(String sn, MNOpenSDKInterface.GetMotionTrackConfigCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetMotionTrackConfigCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 LocationMobileBean optionsBean = null;
@@ -1865,10 +1785,10 @@ public class MNOpenSDK extends BaseSetting {
                     optionsBean = new Gson().fromJson(optionsResult, LocationMobileBean.class);
                 }
                 LocationMobileBean finalOptionsBean = optionsBean;
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetMotionTrackConfig(finalOptionsBean);
+                        if (callback != null) {
+                            callback.onGetMotionTrackConfig(finalOptionsBean);
                         }
                     });
                 }
@@ -1886,18 +1806,17 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback    Callback method
      */
     public static void setMotionTrackConfig(String sn, boolean motionTrack, MNOpenSDKInterface.SetMotionTrackConfigCallBack callback) {
-        WeakReference<MNOpenSDKInterface.SetMotionTrackConfigCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                    if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         BaseResult baseResult = new BaseResult();
                         baseResult.setResult(false);
                         baseResult.setCode(5005);
                         baseResult.setMsg("Restricted permission");
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onSetMotionTrackConfig(baseResult);
+                            if (callback != null) {
+                                callback.onSetMotionTrackConfig(baseResult);
                             }
                         });
                     }
@@ -1906,11 +1825,11 @@ public class MNOpenSDK extends BaseSetting {
 
                 String getConfig = "{\"method\":\"setConfig\",\"params\":{\"MotionTrack\":" + motionTrack + "}}";
                 String optionsResult = MNJni.RequestMotionTrackConfig(sn, getConfig, 10);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     BaseResult finalOptionsBean = new Gson().fromJson(optionsResult, BaseResult.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onSetMotionTrackConfig(finalOptionsBean);
+                        if (callback != null) {
+                            callback.onSetMotionTrackConfig(finalOptionsBean);
                         }
                     });
                 }
@@ -1927,17 +1846,16 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getAlarmCloudRecordConfig(String sn, MNOpenSDKInterface.GetAlarmCloudRecordConfigCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetAlarmCloudRecordConfigCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 String getConfig = "{\"method\":\"getConfig\"}";
                 String optionsResult = MNJni.RequestMNAlarmCloudRecord(sn, getConfig, 10);
 
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     AlarmCloudRecordBean finalOptionsBean = new Gson().fromJson(optionsResult, AlarmCloudRecordBean.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetAlarmCloudRecordConfig(finalOptionsBean);
+                        if (callback != null) {
+                            callback.onGetAlarmCloudRecordConfig(finalOptionsBean);
                         }
                     });
                 }
@@ -1955,18 +1873,17 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback   Callback method
      */
     public static void setAlarmCloudRecordConfig(String sn, AlarmCloudRecordSetBean nvrSetBean, MNOpenSDKInterface.SetAlarmCloudRecordConfigCallBack callback) {
-        WeakReference<MNOpenSDKInterface.SetAlarmCloudRecordConfigCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                    if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                    if (callback != null && mainHandler != null) {
                         BaseResult baseResult = new BaseResult();
                         baseResult.setResult(false);
                         baseResult.setCode(5005);
                         baseResult.setMsg("Restricted permission");
                         mainHandler.post(() -> {
-                            if (weakReference.get() != null) {
-                                weakReference.get().onSetAlarmCloudRecordConfig(baseResult);
+                            if (callback != null) {
+                                callback.onSetAlarmCloudRecordConfig(baseResult);
                             }
                         });
                     }
@@ -1976,11 +1893,11 @@ public class MNOpenSDK extends BaseSetting {
                 String getConfig = "{\"method\":\"setConfig\",\"params\":" + new Gson().toJson(nvrSetBean) + "}";
                 String optionsResult = MNJni.RequestMNAlarmCloudRecord(sn, getConfig, 10);
 
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     BaseResult finalOptionsBean = new Gson().fromJson(optionsResult, BaseResult.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onSetAlarmCloudRecordConfig(finalOptionsBean);
+                        if (callback != null) {
+                            callback.onSetAlarmCloudRecordConfig(finalOptionsBean);
                         }
                     });
                 }
@@ -1997,15 +1914,14 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getCapturePicture(String sn, MNOpenSDKInterface.GetCapturePictureCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetCapturePictureCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 String optionsResult = MNJni.SdkCapturePicture(sn);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null &&mainHandler != null) {
                     CoverBean finalOptionsBean = new Gson().fromJson(optionsResult, CoverBean.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetCapturePicture(finalOptionsBean);
+                        if (callback != null) {
+                            callback.onGetCapturePicture(finalOptionsBean);
                         }
                     });
                 }
@@ -2022,15 +1938,14 @@ public class MNOpenSDK extends BaseSetting {
      * @param callback Callback method
      */
     public static void getNVRIPCInfo(String sn, MNOpenSDKInterface.GetNVRIPCInfoCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetNVRIPCInfoCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 String videoOptionsResult = MNJni.GetNVRIPCInfo(sn, 10);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     NVRIPCInfoBean finalOptions = new Gson().fromJson(videoOptionsResult.trim(), NVRIPCInfoBean.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetNVRIPCInfo(finalOptions);
+                        if (callback != null) {
+                            callback.onGetNVRIPCInfo(finalOptions);
                         }
                     });
                 }
@@ -2057,15 +1972,14 @@ public class MNOpenSDK extends BaseSetting {
      * @param sn Device sn
      */
     public static void getUpgradeState(String sn, MNOpenSDKInterface.GetUpgradeStateCallBack callback) {
-        WeakReference<MNOpenSDKInterface.GetUpgradeStateCallBack> weakReference = new WeakReference<>(callback);
         threadPool.execute(() -> {
             try {
                 String optionsResult = MNJni.GetUpgradeState(sn, 10);
-                if (weakReference != null && weakReference.get() != null && mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     UpgradeStateBean finalOptionsBean = new Gson().fromJson(optionsResult, UpgradeStateBean.class);
                     mainHandler.post(() -> {
-                        if (weakReference.get() != null) {
-                            weakReference.get().onGetUpgradeState(sn, finalOptionsBean);
+                        if (callback != null) {
+                            callback.onGetUpgradeState(sn, finalOptionsBean);
                         }
                     });
                 }

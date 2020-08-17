@@ -174,7 +174,6 @@ public class PermissionUtils {
     }
 
     public static final String[] PermissionGroup = new String[]{
-            Permission.READ_PHONE_STATE, Permission.CALL_PHONE,//手机配置
             Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE, // 存储,读取文件
             Permission.READ_CONTACTS, Permission.GET_ACCOUNTS, // 存联系人
             Permission.ACCESS_FINE_LOCATION, Permission.ACCESS_COARSE_LOCATION, // 位置

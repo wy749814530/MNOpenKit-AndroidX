@@ -1,6 +1,7 @@
 package com.mn.okhttp3;
 
 
+import android.text.TextUtils;
 
 import com.mn.okhttp3.builder.GetBuilder;
 import com.mn.okhttp3.builder.HeadBuilder;
@@ -12,6 +13,7 @@ import com.mn.okhttp3.callback.Callback;
 import com.mn.okhttp3.callback.OnDownloadListener;
 import com.mn.okhttp3.request.RequestCall;
 import com.mn.okhttp3.utils.Platform;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -138,7 +140,6 @@ public class OkHttpUtils {
         });
     }
 
-
     public void sendFailResultCallback(final Call call, final Exception e, final Callback callback, final int id) {
         if (callback == null) return;
 
@@ -176,17 +177,27 @@ public class OkHttpUtils {
     }
 
     /**
-     * @param url 下载连接
-     * @param saveDir 储存下载文件的SDCard目录
+     * @param url      下载连接
      * @param listener 下载监听
      */
-    public void download(final String url, final String saveDir, final String fileName,final OnDownloadListener listener) {
+    public void download(final String url, final String savePath, final OnDownloadListener listener) {
+        if (TextUtils.isEmpty(url) || !url.contains("http") && savePath != null) {
+            return;
+        }
+        File tempFile = new File(savePath + ".temp");
+        File resultFile = new File(savePath);
+
         Request request = new Request.Builder().url(url).build();
         mOkHttpClient.newCall(request).enqueue(new okhttp3.Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 // 下载失败
-                listener.onDownloadFailed();
+                if (listener != null) {
+                    listener.onDownloadFailed(url);
+                }
+                if (tempFile != null) {
+                    tempFile.delete();
+                }
             }
 
             @Override
@@ -196,25 +207,44 @@ public class OkHttpUtils {
                 int len = 0;
                 FileOutputStream fos = null;
                 // 储存下载文件的目录
-                String savePath = isExistDir(saveDir);
                 try {
-                    is = response.body().byteStream();
-                    long total = response.body().contentLength();
-                    File file = new File(savePath, fileName);
-                    fos = new FileOutputStream(file);
-                    long sum = 0;
-                    while ((len = is.read(buf)) != -1) {
-                        fos.write(buf, 0, len);
-                        sum += len;
-                        int progress = (int) (sum * 1.0f / total * 100);
-                        // 下载中
-                        listener.onDownloading(progress);
+                    if (response.isSuccessful()) {
+                        is = response.body().byteStream();
+                        long total = response.body().contentLength();
+                        fos = new FileOutputStream(tempFile);
+                        long sum = 0;
+                        while ((len = is.read(buf)) != -1) {
+                            fos.write(buf, 0, len);
+                            sum += len;
+                            int progress = (int) (sum * 1.0f / total * 100);
+                            // 下载中
+                            if (listener != null) {
+                                listener.onDownloading(progress);
+                            }
+                        }
+                        fos.flush();
+                        // 下载完成
+                        tempFile.renameTo(resultFile);
+
+                        if (listener != null) {
+                            listener.onDownloadSuccess(resultFile);
+                        }
+                    } else {
+                        if (listener != null) {
+                            listener.onDownloadFailed(url);
+                        }
+                        if (tempFile != null) {
+                            tempFile.delete();
+                        }
                     }
-                    fos.flush();
-                    // 下载完成
-                    listener.onDownloadSuccess(file);
                 } catch (Exception e) {
-                    listener.onDownloadFailed();
+                    e.printStackTrace();
+                    if (listener != null) {
+                        listener.onDownloadFailed(url);
+                    }
+                    if (tempFile != null) {
+                        tempFile.delete();
+                    }
                 } finally {
                     try {
                         if (is != null)
@@ -234,8 +264,7 @@ public class OkHttpUtils {
     /**
      * @param saveDir
      * @return
-     * @throws IOException
-     * 判断下载目录是否存在
+     * @throws IOException 判断下载目录是否存在
      */
     private String isExistDir(String saveDir) throws IOException {
         // 下载位置

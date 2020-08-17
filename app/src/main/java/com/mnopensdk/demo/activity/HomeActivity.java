@@ -15,6 +15,8 @@ import com.bumptech.glide.Glide;
 import com.github.library.BaseRecyclerAdapter;
 import com.github.library.BaseViewHolder;
 import com.github.library.listener.OnRecyclerItemClickListener;
+import com.mn.Keyword;
+import com.mn.MNRegion;
 import com.mn.bean.restfull.DevListSortBean;
 import com.mn.bean.restfull.DevicesBean;
 import com.mnopensdk.demo.BaseApplication;
@@ -283,5 +285,10 @@ public class HomeActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         }
     }
 
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        LogUtil.i(TAG, "Keyord.MN_APP_KEY : " + Keyword.MN_APP_KEY + " ,name() :" + Keyword.MN_APP_KEY.name() + " ,toString() :" + Keyword.MN_APP_KEY.toString());
+        LogUtil.i(TAG, "MNRegion.CN : " + MNRegion.CN + " ,name() :" + MNRegion.CN.name() + " ,toString() :" + MNRegion.CN.toString());
+    }
 }

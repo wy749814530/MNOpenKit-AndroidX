@@ -1,27 +1,10 @@
 package MNSDK;
 
-import android.content.SharedPreferences;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.alibaba.fastjson.JSONObject;
 import com.mn.MnKitAlarmType;
-import com.mn.bean.restfull.DeviceInfoBean;
-import com.mn.bean.restfull.FavoriteDelteBean;
-import com.mn.bean.restfull.FavoritePointSaveBean;
-import com.mn.bean.restfull.FavoritesInfoBean;
-import com.mn.bean.restfull.FirmwareVerBean;
-import com.mn.bean.restfull.MeToOtherBean;
-import com.mn.bean.restfull.OtherToMeBean;
-import com.mn.bean.restfull.PushconfigBean;
-import com.mn.bean.restfull.Record24AlarmBean;
-import com.mn.bean.restfull.ShareUserListBean;
-import com.mn.bean.restfull.SharedHistoryBean;
-import com.mn.bean.restfull.WaitingShareDevBean;
-import com.mn.okhttp3.JsonGenericsSerializator;
-import com.mn.okhttp3.OkHttpUtils;
-import com.mn.okhttp3.callback.GenericsCallback;
-import com.mn.bean.restfull.AlarmTypeBean;
 import com.mn.bean.restfull.AuthenticationBean;
 import com.mn.bean.restfull.BaseBean;
 import com.mn.bean.restfull.CloudAlarmsBean;
@@ -29,9 +12,24 @@ import com.mn.bean.restfull.DevListSortBean;
 import com.mn.bean.restfull.DevOnlineBean;
 import com.mn.bean.restfull.DevPushConfigBean;
 import com.mn.bean.restfull.DevStateInfoBean;
+import com.mn.bean.restfull.DeviceInfoBean;
 import com.mn.bean.restfull.DevicesBean;
+import com.mn.bean.restfull.FavoriteDelteBean;
+import com.mn.bean.restfull.FavoritePointSaveBean;
+import com.mn.bean.restfull.FavoritesInfoBean;
+import com.mn.bean.restfull.FirmwareVerBean;
 import com.mn.bean.restfull.LoginBean;
+import com.mn.bean.restfull.MeToOtherBean;
+import com.mn.bean.restfull.OtherToMeBean;
+import com.mn.bean.restfull.PushconfigBean;
+import com.mn.bean.restfull.Record24AlarmBean;
+import com.mn.bean.restfull.ShareUserListBean;
+import com.mn.bean.restfull.SharedHistoryBean;
 import com.mn.bean.restfull.UpdateDeviceCoverBean;
+import com.mn.bean.restfull.WaitingShareDevBean;
+import com.mn.okhttp3.JsonGenericsSerializator;
+import com.mn.okhttp3.OkHttpUtils;
+import com.mn.okhttp3.callback.GenericsCallback;
 import com.mn.tools.AbilityTools;
 import com.mn.tools.AuthorityManager;
 import com.mn.tools.LocalDataUtils;
@@ -45,7 +43,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import MNSDK.inface.MNKitInterface;
-import MNSDK.inface.MNOpenSDKInterface;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -64,21 +61,6 @@ public class MNKit {
     private MNKit() {
     }
 
-
-    private static boolean getP2pPreLinkstate() {
-        boolean preLike = false;
-        if (MNOpenSDK.mContext == null) {
-            return false;
-        }
-        try {
-            SharedPreferences preferences = MNOpenSDK.mContext.getSharedPreferences(MNOpenSDK.TAG, MNOpenSDK.mContext.MODE_PRIVATE);
-            preLike = preferences.getBoolean("mn_P2pPreLink", false);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return preLike;
-    }
-
     /**
      * 账号登录（Account login）
      *
@@ -86,12 +68,12 @@ public class MNKit {
      * @param password 密码
      * @param callback Callback method
      */
+
     public static void loginWithAccount(String username, String password, MNKitInterface.LoginCallBack callback) {
         if (MNOpenSDK.mContext == null) {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
         }
-        WeakReference<MNKitInterface.LoginCallBack> weakReference = new WeakReference<>(callback);
         try {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("app_key", MNOpenSDK.getAppKey());
@@ -108,8 +90,8 @@ public class MNKit {
                     .execute(new GenericsCallback<LoginBean>(new JsonGenericsSerializator()) {
                         @Override
                         public void onError(Call call, Exception e, int id) {
-                            if (weakReference != null && weakReference.get() != null) {
-                                weakReference.get().onLoginFailed(e.getMessage());
+                            if (callback != null) {
+                                callback.onLoginFailed(e.getMessage());
                             }
                         }
 
@@ -117,50 +99,22 @@ public class MNKit {
                         public void onResponse(LoginBean response, int id) {
                             if (response != null && response.getCode() == 2000) {//密码错误时：{"msg":"username or password error","code":5000}
                                 String accessToken = response.getAccess_token();
+                                String idmToken = response.getIdm_token();
                                 String userId = response.getUser_id();
-                                MNOpenSDK.setAccessToken(accessToken);
+
                                 LocalDataUtils.setUseId(userId);
                                 LocalDataUtils.setUserName(username);
                                 LocalDataUtils.setPassword(password);
 
-                                cachedThreadPool.execute(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        String host = MNOpenSDK.getDomain();
-                                        String domain_host;
-                                        String domain;
-                                        if (host.contains("cn")) {
-                                            //中国
-                                            domain_host = "CN";
-                                            domain = "cn.bullyun.com";
-                                        } else if (host.contains("us")) {
-                                            //美国
-                                            domain_host = "US";
-                                            domain = "us.bullyun.com";
-                                        } else if (host.contains("in")) {
-                                            //印度
-                                            domain_host = "IN";
-                                            domain = "in.bullyun.com";
-                                        } else if (host.contains("te")) {
-                                            domain_host = "TE";
-                                            domain = "te.bullyun.com";
-                                        } else if (host.contains("DV")) {
-                                            domain_host = "DV";
-                                            domain = "dv.bullyun.com";
-                                        } else {
-                                            domain_host = "CN";
-                                            domain = "cn.bullyun.com";
-                                        }
-                                        MNJni.Logout();
-                                        MNJni.Login(userId, accessToken, domain, domain_host);
-                                    }
-                                });
-                                if (weakReference != null && weakReference.get() != null) {
-                                    weakReference.get().onLoginSuccess(response);
+                                MNOpenSDK.setAccessToken(accessToken);
+                                MNOpenSDK.loginEtsAndIdm(userId, idmToken);
+                                Log.i("MNKit", "callback :" + callback);
+                                if (callback != null) {
+                                    callback.onLoginSuccess(response);
                                 }
                             } else {
-                                if (weakReference != null && weakReference.get() != null) {
-                                    weakReference.get().onLoginFailed(response.getMsg());
+                                if (callback != null) {
+                                    callback.onLoginFailed(response.getMsg());
                                 }
                             }
                         }
@@ -173,14 +127,13 @@ public class MNKit {
     /**
      * 获取用户账号下的设备列表(Get device list under user account)
      *
-     * @param callBack Callback method
+     * @param callback Callback method
      */
-    public static void getDevicesList(MNKitInterface.DevListCallBack callBack) {
+    public static void getDevicesList(MNKitInterface.DevListCallBack callback) {
         if (MNOpenSDK.mContext == null) {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
         }
-        WeakReference<MNKitInterface.DevListCallBack> weakReference = new WeakReference<>(callBack);
         JSONObject jsonObject = new JSONObject();
         String strJson = jsonObject.toJSONString();
         OkHttpUtils.postString().mediaType(jsonType)
@@ -193,38 +146,45 @@ public class MNKit {
                 .execute(new GenericsCallback<DevListSortBean>(new JsonGenericsSerializator()) {
                     @Override
                     public void onError(Call call, Exception e, int id) {
-                        if (weakReference != null && weakReference.get() != null) {
-                            weakReference.get().onGetDevListFailed(e.getMessage());
+                        if (callback != null) {
+                            callback.onGetDevListFailed(e.getMessage());
                         }
                     }
 
                     @Override
                     public void onResponse(DevListSortBean response, int id) {
-                        if (weakReference != null && weakReference.get() != null && response != null) {
-                            if (response.getCode() == 2000) {
-                                if (response.getDevices() != null && response.getDevices().size() != 0) {
-                                    for (DevicesBean devicesBean : response.getDevices()) {
-                                        if (devicesBean.getFrom() != null) {
-                                            AuthorityManager.setDevAuthority(devicesBean.getSn(), devicesBean.getAuthority());
-                                        }
-                                        cachedThreadPool.execute(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                AbilityTools.isNewProtocol(devicesBean);
-                                                if (getP2pPreLinkstate()) {
-                                                    MNOpenSDK.linkToDevice(devicesBean.getSn(), devicesBean.getFrom() != null);
-                                                }
+                        try {
+                            if (callback != null && response != null) {
+                                if (response.getCode() == 2000) {
+                                    if (response.getDevices() != null && response.getDevices().size() != 0) {
+                                        for (DevicesBean devicesBean : response.getDevices()) {
+                                            if (devicesBean.getFrom() != null) {
+                                                AuthorityManager.setDevAuthority(devicesBean.getSn(), devicesBean.getAuthority());
                                             }
-                                        });
+                                            cachedThreadPool.execute(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    AbilityTools.isNewProtocol(devicesBean);
+                                                    if (MNOpenSDK.getP2pPreLinkState()) {
+                                                        MNOpenSDK.linkToDevice(devicesBean.getSn(), devicesBean.getFrom() != null);
+                                                    }
+                                                }
+                                            });
+                                        }
                                     }
+                                    if (callback != null)
+                                        callback.onGetDevListSuccess(response);
+                                } else if (response.getCode() == 3000) {
+                                    if (callback != null)
+                                        callback.onGetDevListFailed(response.getMsg());
+                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                } else {
+                                    if (callback != null)
+                                        callback.onGetDevListFailed(response.getMsg());
                                 }
-                                weakReference.get().onGetDevListSuccess(response);
-                            } else if (response.getCode() == 3000) {
-                                weakReference.get().onGetDevListFailed(response.getMsg());
-                                loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                            } else {
-                                weakReference.get().onGetDevListFailed(response.getMsg());
                             }
+                        } catch (Exception e) {
+
                         }
                     }
                 });
@@ -234,14 +194,13 @@ public class MNKit {
      * 获取单个设备详情(Get individual device details)
      *
      * @param sn
-     * @param callBack
+     * @param callback
      */
-    public static void getDeviceBySn(String sn, MNKitInterface.GetDevceBySnCallBack callBack) {
+    public static void getDeviceBySn(String sn, MNKitInterface.GetDevceBySnCallBack callback) {
         if (MNOpenSDK.mContext == null) {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
         }
-        WeakReference<MNKitInterface.GetDevceBySnCallBack> weakReference = new WeakReference<>(callBack);
         OkHttpUtils.get().url(MNOpenSDK.getDomain() + "/api/v1/devices/" + sn)
                 .addParams("app_key", MNOpenSDK.getAppKey())
                 .addParams("app_secret", MNOpenSDK.getAppSecret())
@@ -250,38 +209,45 @@ public class MNKit {
                 .execute(new GenericsCallback<DeviceInfoBean>(new JsonGenericsSerializator()) {
                     @Override
                     public void onError(Call call, Exception e, int id) {
-                        if (weakReference != null && weakReference.get() != null) {
-                            weakReference.get().onGetDevceBySnFailed(e.getMessage());
+                        if (callback != null) {
+                            callback.onGetDevceBySnFailed(e.getMessage());
                         }
                     }
 
                     @Override
                     public void onResponse(DeviceInfoBean response, int id) {
                         Log.i("MNKit", "response :" + response);
-                        if (weakReference != null && weakReference.get() != null && response != null) {
-                            if (response.getCode() == 2000) {
-                                DevicesBean devicesBean = response.getDevice();
-                                if (devicesBean != null) {
-                                    if (devicesBean.getFrom() != null) {
-                                        AuthorityManager.setDevAuthority(devicesBean.getSn(), devicesBean.getAuthority());
-                                    }
-                                    cachedThreadPool.execute(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            AbilityTools.isNewProtocol(devicesBean);
-                                            if (getP2pPreLinkstate()) {
-                                                MNOpenSDK.linkToDevice(devicesBean.getSn(), devicesBean.getFrom() != null);
-                                            }
+                        try {
+                            if (callback != null && response != null) {
+                                if (response.getCode() == 2000) {
+                                    DevicesBean devicesBean = response.getDevice();
+                                    if (devicesBean != null) {
+                                        if (devicesBean.getFrom() != null) {
+                                            AuthorityManager.setDevAuthority(devicesBean.getSn(), devicesBean.getAuthority());
                                         }
-                                    });
+                                        cachedThreadPool.execute(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                AbilityTools.isNewProtocol(devicesBean);
+                                                if (MNOpenSDK.getP2pPreLinkState()) {
+                                                    MNOpenSDK.linkToDevice(devicesBean.getSn(), devicesBean.getFrom() != null);
+                                                }
+                                            }
+                                        });
+                                    }
+                                    if (callback != null)
+                                        callback.onGetDevceBySnSuc(response);
+                                } else if (response.getCode() == 3000) {
+                                    if (callback != null)
+                                        callback.onGetDevceBySnFailed(response.getMsg());
+                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                } else {
+                                    if (callback != null)
+                                        callback.onGetDevceBySnFailed(response.getMsg());
                                 }
-                                weakReference.get().onGetDevceBySnSuc(response);
-                            } else if (response.getCode() == 3000) {
-                                weakReference.get().onGetDevceBySnFailed(response.getMsg());
-                                loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                            } else {
-                                weakReference.get().onGetDevceBySnFailed(response.getMsg());
                             }
+                        } catch (Exception e) {
+
                         }
                     }
                 });
@@ -293,7 +259,6 @@ public class MNKit {
      * @param callback Callback method
      */
     public static void getShareToOtherDevLists(MNKitInterface.GetShareDevListsCallBack callback) {
-        WeakReference<MNKitInterface.GetShareDevListsCallBack> weakReference = new WeakReference<>(callback);
         JSONObject jsonObject = new JSONObject();
         String strJson = jsonObject.toJSONString();
         OkHttpUtils.postString().mediaType(jsonType)
@@ -306,22 +271,29 @@ public class MNKit {
                 .execute(new GenericsCallback<MeToOtherBean>(new JsonGenericsSerializator()) {
                     @Override
                     public void onError(Call call, Exception e, int id) {
-                        if (weakReference != null && weakReference.get() != null) {
-                            weakReference.get().onGetShareDevListsFailed(e.getMessage());
+                        if (callback != null) {
+                            callback.onGetShareDevListsFailed(e.getMessage());
                         }
                     }
 
                     @Override
                     public void onResponse(MeToOtherBean response, int id) {
-                        if (weakReference != null && weakReference.get() != null && response != null) {
-                            if (response.getCode() == 2000) {
-                                weakReference.get().onGetShareDevListsSuc(response);
-                            } else if (response.getCode() == 3000) {
-                                weakReference.get().onGetShareDevListsFailed(response.getMsg());
-                                loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                            } else {
-                                weakReference.get().onGetShareDevListsFailed(response.getMsg());
+                        try {
+                            if (callback != null && response != null) {
+                                if (response.getCode() == 2000) {
+                                    if (callback != null)
+                                        callback.onGetShareDevListsSuc(response);
+                                } else if (response.getCode() == 3000) {
+                                    if (callback != null)
+                                        callback.onGetShareDevListsFailed(response.getMsg());
+                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                } else {
+                                    if (callback != null)
+                                        callback.onGetShareDevListsFailed(response.getMsg());
+                                }
                             }
+                        } catch (Exception e) {
+
                         }
                     }
                 });
@@ -333,7 +305,6 @@ public class MNKit {
      * @param callback Callback method
      */
     public static void getShareOtherToMeDevLists(MNKitInterface.GetOhterShareDevListsCallBack callback) {
-        WeakReference<MNKitInterface.GetOhterShareDevListsCallBack> weakReference = new WeakReference<>(callback);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("user_id", LocalDataUtils.getUseId());
         String strJson = jsonObject.toJSONString();
@@ -347,29 +318,36 @@ public class MNKit {
                 .execute(new GenericsCallback<OtherToMeBean>(new JsonGenericsSerializator()) {
                     @Override
                     public void onError(Call call, Exception e, int id) {
-                        if (weakReference != null && weakReference.get() != null) {
-                            weakReference.get().onGetOhterShareDevListsFailed(e.getMessage());
+                        if (callback != null) {
+                            callback.onGetOhterShareDevListsFailed(e.getMessage());
                         }
                     }
 
                     @Override
                     public void onResponse(OtherToMeBean response, int id) {
-                        if (weakReference != null && weakReference.get() != null && response != null) {
-                            if (response.getCode() == 2000) {
-                                if (response.getDevices() != null) {
-                                    for (DevicesBean devicesBean : response.getDevices()) {
-                                        if (devicesBean.getFrom() != null) {
-                                            AuthorityManager.setDevAuthority(devicesBean.getSn(), devicesBean.getAuthority());
+                        try {
+                            if (callback != null && response != null) {
+                                if (response.getCode() == 2000) {
+                                    if (response.getDevices() != null) {
+                                        for (DevicesBean devicesBean : response.getDevices()) {
+                                            if (devicesBean.getFrom() != null) {
+                                                AuthorityManager.setDevAuthority(devicesBean.getSn(), devicesBean.getAuthority());
+                                            }
                                         }
                                     }
+                                    if (callback != null)
+                                        callback.onGetOhterShareDevListsSuc(response);
+                                } else if (response.getCode() == 3000) {
+                                    if (callback != null)
+                                        callback.onGetOhterShareDevListsFailed(response.getMsg());
+                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                } else {
+                                    if (callback != null)
+                                        callback.onGetOhterShareDevListsFailed(response.getMsg());
                                 }
-                                weakReference.get().onGetOhterShareDevListsSuc(response);
-                            } else if (response.getCode() == 3000) {
-                                weakReference.get().onGetOhterShareDevListsFailed(response.getMsg());
-                                loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                            } else {
-                                weakReference.get().onGetOhterShareDevListsFailed(response.getMsg());
                             }
+                        } catch (Exception e) {
+
                         }
                     }
                 });
@@ -387,7 +365,6 @@ public class MNKit {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
         }
-        WeakReference<MNKitInterface.DeviceStateInfoCallBack> weakReference = new WeakReference<>(callback);
         try {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("sn", sn);
@@ -402,22 +379,29 @@ public class MNKit {
                     .execute(new GenericsCallback<DevStateInfoBean>(new JsonGenericsSerializator()) {
                         @Override
                         public void onError(Call call, Exception e, int id) {
-                            if (weakReference != null && weakReference.get() != null) {
-                                weakReference.get().onGetDeviceStateFailed(e.getMessage());
+                            if (callback != null) {
+                                callback.onGetDeviceStateFailed(e.getMessage());
                             }
                         }
 
                         @Override
                         public void onResponse(DevStateInfoBean response, int id) {
-                            if (weakReference != null && weakReference.get() != null && response != null) {
-                                if (response.getCode() == 2000) {
-                                    weakReference.get().onGetDeviceStateSuc(response);
-                                } else if (response.getCode() == 3000) {
-                                    weakReference.get().onGetDeviceStateFailed(response.getMsg());
-                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                } else {
-                                    weakReference.get().onGetDeviceStateFailed(response.getMsg());
+                            try {
+                                if (callback != null && response != null) {
+                                    if (response.getCode() == 2000) {
+                                        if (callback != null)
+                                            callback.onGetDeviceStateSuc(response);
+                                    } else if (response.getCode() == 3000) {
+                                        if (callback != null)
+                                            callback.onGetDeviceStateFailed(response.getMsg());
+                                        loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                    } else {
+                                        if (callback != null)
+                                            callback.onGetDeviceStateFailed(response.getMsg());
+                                    }
                                 }
+                            } catch (Exception e) {
+
                             }
                         }
                     });
@@ -430,14 +414,13 @@ public class MNKit {
      * 获取设备在线状态(Get device online status)
      *
      * @param sn       Device SN
-     * @param callBack Callback method
+     * @param callback Callback method
      */
-    public static void getDeviceOnlineInfoWithSn(String sn, MNKitInterface.DevOnlineStateCallBack callBack) {
+    public static void getDeviceOnlineInfoWithSn(String sn, MNKitInterface.DevOnlineStateCallBack callback) {
         if (MNOpenSDK.mContext == null) {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
         }
-        WeakReference<MNKitInterface.DevOnlineStateCallBack> weakReference = new WeakReference<>(callBack);
         OkHttpUtils.get().url(MNOpenSDK.getDomain() + "/api/v1/devices/" + sn + "/online")
                 .addParams("app_key", MNOpenSDK.getAppKey())
                 .addParams("app_secret", MNOpenSDK.getAppSecret())
@@ -446,22 +429,28 @@ public class MNKit {
                 .execute(new GenericsCallback<DevOnlineBean>(new JsonGenericsSerializator()) {
                     @Override
                     public void onError(Call call, Exception e, int id) {
-                        if (weakReference != null && weakReference.get() != null) {
-                            weakReference.get().onGetOnLineStateFailed(e.getMessage());
+                        if (callback != null) {
+                            callback.onGetOnLineStateFailed(e.getMessage());
                         }
                     }
 
                     @Override
                     public void onResponse(DevOnlineBean response, int id) {
-                        if (weakReference != null && weakReference.get() != null && response != null) {
-                            if (response.getCode() == 3000) {
-                                weakReference.get().onGetOnLineStateFailed(response.getMsg());
-                                loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                            } else if (response.getCode() == 2000) {
-                                weakReference.get().onGetOnLineStateSucc(response);
-                            } else {
-                                weakReference.get().onGetOnLineStateFailed(response.getMsg());
+                        try {
+                            if (callback != null && response != null) {
+                                if (response.getCode() == 3000) {
+                                    if (callback != null)
+                                        callback.onGetOnLineStateFailed(response.getMsg());
+                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                } else if (response.getCode() == 2000) {
+                                    if (callback != null)
+                                        callback.onGetOnLineStateSucc(response);
+                                } else {
+                                    if (callback != null)
+                                        callback.onGetOnLineStateFailed(response.getMsg());
+                                }
                             }
+                        } catch (Exception e) {
 
                         }
                     }
@@ -474,14 +463,13 @@ public class MNKit {
      * @param sn          Device SN
      * @param vn          Device VN(默认ABCDEF)
      * @param receiveType receiveType默认ABCDEF)
-     * @param callBack    Callback method
+     * @param callback    Callback method
      */
-    public static void bindDeviceBySnAndVn(String sn, String vn, int receiveType, MNKitInterface.DeviceBindViewCallBack callBack) {
+    public static void bindDeviceBySnAndVn(String sn, String vn, int receiveType, MNKitInterface.DeviceBindViewCallBack callback) {
         if (MNOpenSDK.mContext == null) {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
         }
-        WeakReference<MNKitInterface.DeviceBindViewCallBack> weakReference = new WeakReference<>(callBack);
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("app_key", MNOpenSDK.getAppKey());
@@ -497,20 +485,26 @@ public class MNKit {
                     .execute(new GenericsCallback<BaseBean>(new JsonGenericsSerializator()) {
                         @Override
                         public void onError(Call call, Exception e, int id) {
-                            if (weakReference != null && weakReference.get() != null) {
-                                weakReference.get().onBindDeviceFailed(e.getMessage());
+                            if (callback != null) {
+                                callback.onBindDeviceFailed(e.getMessage());
                             }
                         }
 
                         @Override
                         public void onResponse(BaseBean response, int id) {
-                            if (weakReference != null && weakReference.get() != null && response != null) {
-                                if (response.getCode() == 3000) {
-                                    weakReference.get().onBindDeviceFailed(response.getMsg());
-                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                } else {
-                                    weakReference.get().onBindDeviceSuc(response);
+                            try {
+                                if (callback != null && response != null) {
+                                    if (response.getCode() == 3000) {
+                                        if (callback != null)
+                                            callback.onBindDeviceFailed(response.getMsg());
+                                        loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                    } else {
+                                        if (callback != null)
+                                            callback.onBindDeviceSuc(response);
+                                    }
                                 }
+                            } catch (Exception e) {
+
                             }
                         }
                     });
@@ -523,14 +517,13 @@ public class MNKit {
      * 绑定分享设备(Binding sharing device)
      *
      * @param invite_code 邀请码(Invitation code)
-     * @param callBack    Callback method
+     * @param callback    Callback method
      */
-    public static void bindShareDeviceByInviteCode(String invite_code, MNKitInterface.BindShareDeviceViewCallBack callBack) {
+    public static void bindShareDeviceByInviteCode(String invite_code, MNKitInterface.BindShareDeviceViewCallBack callback) {
         if (MNOpenSDK.mContext == null) {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
         }
-        WeakReference<MNKitInterface.BindShareDeviceViewCallBack> weakReference = new WeakReference<>(callBack);
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("user_id", LocalDataUtils.getUseId());
@@ -546,20 +539,26 @@ public class MNKit {
                     .execute(new GenericsCallback<BaseBean>(new JsonGenericsSerializator()) {
                         @Override
                         public void onError(Call call, Exception e, int id) {
-                            if (weakReference != null && weakReference.get() != null) {
-                                callBack.onBindShareDeviceViewFailed(e.getMessage());
+                            if (callback != null) {
+                                callback.onBindShareDeviceViewFailed(e.getMessage());
                             }
                         }
 
                         @Override
                         public void onResponse(BaseBean response, int id) {
-                            if (weakReference != null && weakReference.get() != null && response != null) {
-                                if (response.getCode() == 3000) {
-                                    weakReference.get().onBindShareDeviceViewFailed(response.getMsg());
-                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                } else {
-                                    weakReference.get().onBindShareDeviceViewSuc(response);
+                            try {
+                                if (callback != null && response != null) {
+                                    if (response.getCode() == 3000) {
+                                        if (callback != null)
+                                            callback.onBindShareDeviceViewFailed(response.getMsg());
+                                        loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                    } else {
+                                        if (callback != null)
+                                            callback.onBindShareDeviceViewSuc(response);
+                                    }
                                 }
+                            } catch (Exception e) {
+
                             }
                         }
                     });
@@ -572,14 +571,13 @@ public class MNKit {
      * 解除账号和设备的绑定关系（Unbind account and device）
      *
      * @param sn       Device SN
-     * @param callBack Callback method
+     * @param callback Callback method
      */
-    public static void unbindDevice(String sn, MNKitInterface.UnbindDeviceCallBack callBack) {
+    public static void unbindDevice(String sn, MNKitInterface.UnbindDeviceCallBack callback) {
         if (MNOpenSDK.mContext == null) {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
         }
-        WeakReference<MNKitInterface.UnbindDeviceCallBack> weakReference = new WeakReference<>(callBack);
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("app_key", MNOpenSDK.getAppKey());
@@ -592,22 +590,26 @@ public class MNKit {
                     .execute(new GenericsCallback<BaseBean>(new JsonGenericsSerializator()) {
                         @Override
                         public void onError(Call call, Exception e, int id) {
-                            if (weakReference != null && weakReference.get() != null) {
-                                weakReference.get().onUnbindDeviceFailed(e.getMessage());
+                            if (callback != null) {
+                                callback.onUnbindDeviceFailed(e.getMessage());
                             }
                         }
 
                         @Override
                         public void onResponse(BaseBean response, int id) {
-                            if (weakReference != null && weakReference.get() != null && response != null) {
-                                if (response.getCode() == 2000) {
-                                    weakReference.get().onUnbindDeviceSuc(response);
-                                } else if (response.getCode() == 3000) {
-                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                    weakReference.get().onUnbindDeviceFailed(response.getMsg());
-                                } else {
-                                    weakReference.get().onUnbindDeviceFailed(response.getMsg());
+                            try {
+                                if (callback != null && response != null) {
+                                    if (response.getCode() == 2000) {
+                                        callback.onUnbindDeviceSuc(response);
+                                    } else if (response.getCode() == 3000) {
+                                        loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                        callback.onUnbindDeviceFailed(response.getMsg());
+                                    } else {
+                                        callback.onUnbindDeviceFailed(response.getMsg());
+                                    }
                                 }
+                            } catch (Exception e) {
+
                             }
                         }
                     });
@@ -620,14 +622,13 @@ public class MNKit {
      * 被分享用户主动解除被分享设备的绑定关系（The shared user actively unbinds the shared device）
      *
      * @param device_id Device ID
-     * @param callBack  Callback method
+     * @param callback  Callback method
      */
-    public static void unbindSharedDevice(String device_id, MNKitInterface.UnBindShareDeviceCallBack callBack) {
+    public static void unbindSharedDevice(String device_id, MNKitInterface.UnBindShareDeviceCallBack callback) {
         if (MNOpenSDK.mContext == null) {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
         }
-        WeakReference<MNKitInterface.UnBindShareDeviceCallBack> weakReference = new WeakReference<>(callBack);
         try {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("device_id", device_id);
@@ -643,22 +644,26 @@ public class MNKit {
                     .execute(new GenericsCallback<BaseBean>(new JsonGenericsSerializator()) {
                         @Override
                         public void onError(Call call, Exception e, int id) {
-                            if (weakReference != null && weakReference.get() != null) {
-                                weakReference.get().onUnBindShareDeviceFailed(e.getLocalizedMessage());
+                            if (callback != null) {
+                                callback.onUnBindShareDeviceFailed(e.getLocalizedMessage());
                             }
                         }
 
                         @Override
                         public void onResponse(BaseBean response, int id) {
-                            if (weakReference != null && weakReference.get() != null && response != null) {
-                                if (response.getCode() == 2000) {
-                                    weakReference.get().onUnBindShareDeviceSuc(response);
-                                } else if (response.getCode() == 3000) {
-                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                    weakReference.get().onUnBindShareDeviceFailed(response.getMsg());
-                                } else {
-                                    weakReference.get().onUnBindShareDeviceFailed(response.getMsg());
+                            try {
+                                if (callback != null && response != null) {
+                                    if (response.getCode() == 2000) {
+                                        callback.onUnBindShareDeviceSuc(response);
+                                    } else if (response.getCode() == 3000) {
+                                        loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                        callback.onUnBindShareDeviceFailed(response.getMsg());
+                                    } else {
+                                        callback.onUnBindShareDeviceFailed(response.getMsg());
+                                    }
                                 }
+                            } catch (Exception e) {
+
                             }
                         }
                     });
@@ -673,14 +678,13 @@ public class MNKit {
      * @param device_id Device ID
      * @param user_id   user id
      * @param account   account
-     * @param callBack  Callback method
+     * @param callback  Callback method
      */
-    public static void cancelSharedDevice(String device_id, String user_id, String account, MNKitInterface.CancelShareDeviceCallBack callBack) {
+    public static void cancelSharedDevice(String device_id, String user_id, String account, MNKitInterface.CancelShareDeviceCallBack callback) {
         if (MNOpenSDK.mContext == null) {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
         }
-        WeakReference<MNKitInterface.CancelShareDeviceCallBack> weakReference = new WeakReference<>(callBack);
         try {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("device_id", device_id);
@@ -705,22 +709,26 @@ public class MNKit {
                     .execute(new GenericsCallback<BaseBean>(new JsonGenericsSerializator()) {
                         @Override
                         public void onError(Call call, Exception e, int id) {
-                            if (weakReference != null && weakReference.get() != null) {
-                                weakReference.get().onCancelShareDeviceFailed(e.getMessage());
+                            if (callback != null) {
+                                callback.onCancelShareDeviceFailed(e.getMessage());
                             }
                         }
 
                         @Override
                         public void onResponse(BaseBean response, int id) {
-                            if (weakReference != null && weakReference.get() != null && response != null) {
-                                if (response.getCode() == 2000) {
-                                    weakReference.get().onCancelShareDeviceSuc(response);
-                                } else if (response.getCode() == 3000) {
-                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                    weakReference.get().onCancelShareDeviceFailed(response.getMsg());
-                                } else {
-                                    weakReference.get().onCancelShareDeviceFailed(response.getMsg());
+                            try {
+                                if (callback != null && response != null) {
+                                    if (response.getCode() == 2000) {
+                                        callback.onCancelShareDeviceSuc(response);
+                                    } else if (response.getCode() == 3000) {
+                                        loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                        callback.onCancelShareDeviceFailed(response.getMsg());
+                                    } else {
+                                        callback.onCancelShareDeviceFailed(response.getMsg());
+                                    }
                                 }
+                            } catch (Exception e) {
+
                             }
                         }
                     });
@@ -738,7 +746,6 @@ public class MNKit {
      * @param callback  Callback method
      */
     public static void updateShareDeviceAuthority(String device_id, String user_id, int authority, MNKitInterface.UpdateShareDeviceAuthorityCallBack callback) {
-        WeakReference<MNKitInterface.UpdateShareDeviceAuthorityCallBack> weakReference = new WeakReference<>(callback);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("device_id", device_id);
         jsonObject.put("user_id", user_id);
@@ -754,22 +761,26 @@ public class MNKit {
                 .execute(new GenericsCallback<BaseBean>(new JsonGenericsSerializator()) {
                     @Override
                     public void onError(Call call, Exception e, int id) {
-                        if (weakReference != null && weakReference.get() != null) {
-                            weakReference.get().onUpdateShareDeviceAuthorityFailed(e.getMessage());
+                        if (callback != null) {
+                            callback.onUpdateShareDeviceAuthorityFailed(e.getMessage());
                         }
                     }
 
                     @Override
                     public void onResponse(BaseBean response, int id) {
-                        if (weakReference != null && weakReference.get() != null && response != null) {
-                            if (response.getCode() == 2000) {
-                                weakReference.get().onUpdateShareDeviceAuthoritySuc();
-                            } else if (response.getCode() == 3000) {
-                                loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                weakReference.get().onUpdateShareDeviceAuthorityFailed(response.getMsg());
-                            } else {
-                                weakReference.get().onUpdateShareDeviceAuthorityFailed(response.getMsg());
+                        try {
+                            if (callback != null && response != null) {
+                                if (response.getCode() == 2000) {
+                                    callback.onUpdateShareDeviceAuthoritySuc();
+                                } else if (response.getCode() == 3000) {
+                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                    callback.onUpdateShareDeviceAuthorityFailed(response.getMsg());
+                                } else {
+                                    callback.onUpdateShareDeviceAuthorityFailed(response.getMsg());
+                                }
                             }
+                        } catch (Exception e) {
+
                         }
                     }
                 });
@@ -781,15 +792,14 @@ public class MNKit {
      *
      * @param sn       Device SN
      * @param devName  New device name
-     * @param callBack Callback method
+     * @param callback Callback method
      */
-    public static void modifyDeviceNameWithSN(String sn, String devName, MNKitInterface.ModifyDeviceNameCallBack callBack) {
+    public static void modifyDeviceNameWithSN(String sn, String devName, MNKitInterface.ModifyDeviceNameCallBack callback) {
         if (MNOpenSDK.mContext == null) {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
         }
         try {
-            WeakReference<MNKitInterface.ModifyDeviceNameCallBack> weakReference = new WeakReference<>(callBack);
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("app_key", MNOpenSDK.getAppKey());
             jsonObject.put("app_secret", MNOpenSDK.getAppSecret());
@@ -802,22 +812,26 @@ public class MNKit {
                     .execute(new GenericsCallback<BaseBean>(new JsonGenericsSerializator()) {
                         @Override
                         public void onError(Call call, Exception e, int id) {
-                            if (weakReference != null && weakReference.get() != null) {
-                                weakReference.get().onModifyDeviceNameFailed(e.getMessage());
+                            if (callback != null) {
+                                callback.onModifyDeviceNameFailed(e.getMessage());
                             }
                         }
 
                         @Override
                         public void onResponse(BaseBean response, int id) {
-                            if (weakReference != null && weakReference.get() != null && response != null) {
-                                if (response.getCode() == 2000) {
-                                    weakReference.get().onModifyDeviceNameSuc(response);
-                                } else if (response.getCode() == 3000) {
-                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                    weakReference.get().onModifyDeviceNameFailed(response.getMsg());
-                                } else {
-                                    weakReference.get().onModifyDeviceNameFailed(response.getMsg());
+                            try {
+                                if (callback != null && response != null) {
+                                    if (response.getCode() == 2000) {
+                                        callback.onModifyDeviceNameSuc(response);
+                                    } else if (response.getCode() == 3000) {
+                                        loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                        callback.onModifyDeviceNameFailed(response.getMsg());
+                                    } else {
+                                        callback.onModifyDeviceNameFailed(response.getMsg());
+                                    }
                                 }
+                            } catch (Exception e) {
+
                             }
                         }
                     });
@@ -832,14 +846,13 @@ public class MNKit {
      * @param file      File
      * @param sn        Device SN
      * @param channelId channel Id
-     * @param callBack  Callback method
+     * @param callback  Callback method
      */
-    public static void updateDeviceCover(File file, String sn, int channelId, MNKitInterface.UpdateDeviceCoverCallBack callBack) {
+    public static void updateDeviceCover(File file, String sn, int channelId, MNKitInterface.UpdateDeviceCoverCallBack callback) {
         if (MNOpenSDK.mContext == null) {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
         }
-        WeakReference<MNKitInterface.UpdateDeviceCoverCallBack> weakReference = new WeakReference<>(callBack);
         String url = MNOpenSDK.getDomain() + "/api/v1/devices/" + sn + "/logo/upload";
         OkHttpUtils.post().url(url)
                 .addFile("img", "", file)
@@ -851,22 +864,26 @@ public class MNKit {
                 .execute(new GenericsCallback<UpdateDeviceCoverBean>(new JsonGenericsSerializator()) {
                     @Override
                     public void onError(Call call, Exception e, int id) {
-                        if (weakReference != null && weakReference.get() != null) {
-                            weakReference.get().onUpdateDeviceCoverFailed(e.getMessage(), id);
+                        if (callback != null) {
+                            callback.onUpdateDeviceCoverFailed(e.getMessage(), id);
                         }
                     }
 
                     @Override
                     public void onResponse(UpdateDeviceCoverBean response, int id) {
-                        if (weakReference != null && weakReference.get() != null && response != null) {
-                            if (response.getCode() == 2000) {
-                                weakReference.get().onUpdateDeviceCoverSuc(response, id);
-                            } else if (response.getCode() == 3000) {
-                                loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                weakReference.get().onUpdateDeviceCoverFailed(response.getMsg(), id);
-                            } else {
-                                weakReference.get().onUpdateDeviceCoverFailed(response.getMsg(), id);
+                        try {
+                            if (callback != null && response != null) {
+                                if (response.getCode() == 2000) {
+                                    callback.onUpdateDeviceCoverSuc(response, id);
+                                } else if (response.getCode() == 3000) {
+                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                    callback.onUpdateDeviceCoverFailed(response.getMsg(), id);
+                                } else {
+                                    callback.onUpdateDeviceCoverFailed(response.getMsg(), id);
+                                }
                             }
+                        } catch (Exception e) {
+
                         }
                     }
                 });
@@ -883,17 +900,16 @@ public class MNKit {
      * @param personName       // 名字，人脸识别有效(Name, face recognition is valid)
      * @param pageStart        // 第几页，从0开始，开始时间与结束时间相同的查询有效(Page number, starting from 0, the query with the same start time and end time is valid)
      * @param pageSize         // 每页查询条数(Number of queries per page)
-     * @param callBack         Callback method
+     * @param callback         Callback method
      */
 
 
     public static void getCloudAlarmData(ArrayList<String> deviceSns, long startTime, long endTime, int alarmTypeOptions,
-                                         String personName, int pageStart, int pageSize, MNKitInterface.CloudAlarmsCallBack callBack) {
+                                         String personName, int pageStart, int pageSize, MNKitInterface.CloudAlarmsCallBack callback) {
         if (MNOpenSDK.mContext == null) {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
         }
-        WeakReference<MNKitInterface.CloudAlarmsCallBack> weakReference = new WeakReference<>(callBack);
         try {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("deviceSns", deviceSns);//数组
@@ -915,22 +931,26 @@ public class MNKit {
                     new GenericsCallback<CloudAlarmsBean>(new JsonGenericsSerializator()) {
                         @Override
                         public void onError(Call call, Exception e, int id) {
-                            if (weakReference != null && weakReference.get() != null) {
-                                weakReference.get().onGetCloudAlarmsFailed(e.getMessage());
+                            if (callback != null) {
+                                callback.onGetCloudAlarmsFailed(e.getMessage());
                             }
                         }
 
                         @Override
                         public void onResponse(CloudAlarmsBean regBean, int id) {
-                            if (weakReference != null && weakReference.get() != null && regBean != null) {
-                                if (regBean.getCode() == 2000 || regBean.getCode() == 5005) {
-                                    weakReference.get().onGetCloudAlarmsSuc(regBean);
-                                } else if (regBean.getCode() == 3000) {
-                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                    weakReference.get().onGetCloudAlarmsFailed(regBean.getMsg());
-                                } else {
-                                    weakReference.get().onGetCloudAlarmsFailed(regBean.getMsg());
+                            try {
+                                if (callback != null && regBean != null) {
+                                    if (regBean.getCode() == 2000 || regBean.getCode() == 5005) {
+                                        callback.onGetCloudAlarmsSuc(regBean);
+                                    } else if (regBean.getCode() == 3000) {
+                                        loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                        callback.onGetCloudAlarmsFailed(regBean.getMsg());
+                                    } else {
+                                        callback.onGetCloudAlarmsFailed(regBean.getMsg());
+                                    }
                                 }
+                            } catch (Exception e) {
+
                             }
                         }
                     });
@@ -952,7 +972,6 @@ public class MNKit {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
         }
-        WeakReference<MNKitInterface.Get24HCloudRecordCallBack> weakReference = new WeakReference<>(callback);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("sn", sn);//数组
         jsonObject.put("start_time", start_time);
@@ -972,22 +991,26 @@ public class MNKit {
                 .execute(new GenericsCallback<Record24AlarmBean>(new JsonGenericsSerializator()) {
                     @Override
                     public void onError(Call call, Exception e, int id) {
-                        if (weakReference != null && weakReference.get() != null) {
-                            weakReference.get().onGet24HCloudRecordFailed(e.getMessage());
+                        if (callback != null) {
+                            callback.onGet24HCloudRecordFailed(e.getMessage());
                         }
                     }
 
                     @Override
                     public void onResponse(Record24AlarmBean response, int id) {
-                        if (response != null && weakReference != null && weakReference.get() != null) {
-                            if (response.getCode() == 2000) {
-                                weakReference.get().onGet24HCloudRecordSuc(response);
-                            } else if (response.getCode() == 3000) {
-                                loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                weakReference.get().onGet24HCloudRecordFailed(response.getMsg());
-                            } else {
-                                weakReference.get().onGet24HCloudRecordFailed(response.getMsg());
+                        try {
+                            if (response != null && callback != null) {
+                                if (response.getCode() == 2000) {
+                                    callback.onGet24HCloudRecordSuc(response);
+                                } else if (response.getCode() == 3000) {
+                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                    callback.onGet24HCloudRecordFailed(response.getMsg());
+                                } else {
+                                    callback.onGet24HCloudRecordFailed(response.getMsg());
+                                }
                             }
+                        } catch (Exception e) {
+
                         }
                     }
                 });
@@ -998,14 +1021,13 @@ public class MNKit {
      * 对报警视频URL信息鉴权(Authentication of alarm video URL information)
      *
      * @param url      需要鉴权的视频地址(Video address requiring authentication)
-     * @param callBack Callback method
+     * @param callback Callback method
      */
-    public static void authenticationUrl(String url, MNKitInterface.AuthenticationUrlCallBack callBack) {
+    public static void authenticationUrl(String url, MNKitInterface.AuthenticationUrlCallBack callback) {
         if (MNOpenSDK.mContext == null) {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
         }
-        WeakReference<MNKitInterface.AuthenticationUrlCallBack> weakReference = new WeakReference<>(callBack);
         try {
             ArrayList<String> urls = new ArrayList<>();
             urls.add(url);
@@ -1022,22 +1044,26 @@ public class MNKit {
                     .execute(new GenericsCallback<AuthenticationBean>(new JsonGenericsSerializator()) {
                         @Override
                         public void onError(Call call, Exception e, int id) {
-                            if (weakReference != null && weakReference.get() != null) {
-                                weakReference.get().onAuthenticationUrlFailed(null);
+                            if (callback != null) {
+                                callback.onAuthenticationUrlFailed(null);
                             }
                         }
 
                         @Override
                         public void onResponse(AuthenticationBean response, int id) {
-                            if (response != null && weakReference != null && weakReference.get() != null) {
-                                if (response.getCode() == 2000) {
-                                    weakReference.get().onAuthenticationUrlSuc(response);
-                                } else if (response.getCode() == 3000) {
-                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                    weakReference.get().onAuthenticationUrlFailed(response.getMsg());
-                                } else {
-                                    weakReference.get().onAuthenticationUrlFailed(response.getMsg());
+                            try {
+                                if (response != null && callback != null) {
+                                    if (response.getCode() == 2000) {
+                                        callback.onAuthenticationUrlSuc(response);
+                                    } else if (response.getCode() == 3000) {
+                                        loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                        callback.onAuthenticationUrlFailed(response.getMsg());
+                                    } else {
+                                        callback.onAuthenticationUrlFailed(response.getMsg());
+                                    }
                                 }
+                            } catch (Exception e) {
+
                             }
                         }
                     });
@@ -1051,14 +1077,13 @@ public class MNKit {
      *
      * @param sn        Device SN
      * @param channelId channel Id
-     * @param callBack  Callback method
+     * @param callback  Callback method
      */
-    public static void getPushConfigWithSN(String sn, int channelId, MNKitInterface.GetDevPushconfigCallBack callBack) {
+    public static void getPushConfigWithSN(String sn, int channelId, MNKitInterface.GetDevPushconfigCallBack callback) {
         if (MNOpenSDK.mContext == null) {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
         }
-        WeakReference<MNKitInterface.GetDevPushconfigCallBack> weakReference = new WeakReference<>(callBack);
         String getUrl = MNOpenSDK.getDomain() + "/api/v3/pushconfig/get" + "?sn=" + sn + "&channel_no=" + channelId;
         OkHttpUtils.get()
                 .url(getUrl)
@@ -1069,55 +1094,59 @@ public class MNKit {
                 .execute(new GenericsCallback<DevPushConfigBean>(new JsonGenericsSerializator()) {
                     @Override
                     public void onError(Call call, Exception e, int id) {
-                        if (weakReference != null && weakReference.get() != null) {
-                            weakReference.get().onGetDevPushconfigFailed(e.getMessage());
+                        if (callback != null) {
+                            callback.onGetDevPushconfigFailed(e.getMessage());
                         }
                     }
 
                     @Override
                     public void onResponse(DevPushConfigBean response, int id) {
-                        if (response != null && weakReference != null && weakReference.get() != null) {
-                            if (response.getCode() == 2000 && response.getPushconfig() != null) {
-                                PushconfigBean pushconfigBean = response.getPushconfig();
-                                int alarmOptions = 0;
-                                if (response.getPushconfig().getPushenable() == 0) {
-                                    alarmOptions = 0;
-                                } else if (response.getPushconfig().getPushenable() == 1 && (response.getPushconfig().getPush_list() == null || response.getPushconfig().getPush_list().size() == 0)) {
-                                    alarmOptions = MnKitAlarmType.AllAlarm_Detection;
-                                } else {
-                                    for (PushconfigBean.PushListBean listBean : response.getPushconfig().getPush_list()) {
-                                        if (listBean.getAlarmType() == 1) { // 外部IO报警
-                                            alarmOptions = alarmOptions | MnKitAlarmType.IO_detection;
-                                        } else if (listBean.getAlarmType() == 3) { // 人脸识别
-                                            if ((listBean.getSubAlarmType().contains(3) || listBean.getSubAlarmType().contains(4))) {
-                                                alarmOptions = alarmOptions | MnKitAlarmType.Face_Detection;
+                        try {
+                            if (response != null && callback != null) {
+                                if (response.getCode() == 2000 && response.getPushconfig() != null) {
+                                    PushconfigBean pushconfigBean = response.getPushconfig();
+                                    int alarmOptions = 0;
+                                    if (response.getPushconfig().getPushenable() == 0) {
+                                        alarmOptions = 0;
+                                    } else if (response.getPushconfig().getPushenable() == 1 && (response.getPushconfig().getPush_list() == null || response.getPushconfig().getPush_list().size() == 0)) {
+                                        alarmOptions = MnKitAlarmType.AllAlarm_Detection;
+                                    } else {
+                                        for (PushconfigBean.PushListBean listBean : response.getPushconfig().getPush_list()) {
+                                            if (listBean.getAlarmType() == 1) { // 外部IO报警
+                                                alarmOptions = alarmOptions | MnKitAlarmType.IO_detection;
+                                            } else if (listBean.getAlarmType() == 3) { // 人脸识别
+                                                if ((listBean.getSubAlarmType().contains(3) || listBean.getSubAlarmType().contains(4))) {
+                                                    alarmOptions = alarmOptions | MnKitAlarmType.Face_Detection;
+                                                }
+                                                if ((listBean.getSubAlarmType().contains(5))) {
+                                                    alarmOptions = alarmOptions | MnKitAlarmType.IO_Attendance_detection;
+                                                }
+                                            } else if (listBean.getAlarmType() == 8) { //N2 移动侦测
+                                                alarmOptions = alarmOptions | MnKitAlarmType.Motion_Detection;
+                                            } else if (listBean.getAlarmType() == 11) { //人形
+                                                alarmOptions = alarmOptions | MnKitAlarmType.Humanoid_Detection;
+                                            } else if (listBean.getAlarmType() == 12) { //没有哭声检测
+                                                alarmOptions = alarmOptions | MnKitAlarmType.Cry_Detection;
+                                            } else if (listBean.getAlarmType() == 13) {//遮挡报警
+                                                alarmOptions = alarmOptions | MnKitAlarmType.Occlusion_Detection;
+                                            } else if (listBean.getAlarmType() == 14) {//PIR侦测
+                                                alarmOptions = alarmOptions | MnKitAlarmType.Infrared_detection;
+                                            } else if (listBean.getAlarmType() == 256) { //箱体报警
+                                                alarmOptions = alarmOptions | MnKitAlarmType.Box_Detection;
                                             }
-                                            if ((listBean.getSubAlarmType().contains(5))) {
-                                                alarmOptions = alarmOptions | MnKitAlarmType.IO_Attendance_detection;
-                                            }
-                                        } else if (listBean.getAlarmType() == 8) { //N2 移动侦测
-                                            alarmOptions = alarmOptions | MnKitAlarmType.Motion_Detection;
-                                        } else if (listBean.getAlarmType() == 11) { //人形
-                                            alarmOptions = alarmOptions | MnKitAlarmType.Humanoid_Detection;
-                                        } else if (listBean.getAlarmType() == 12) { //没有哭声检测
-                                            alarmOptions = alarmOptions | MnKitAlarmType.Cry_Detection;
-                                        } else if (listBean.getAlarmType() == 13) {//遮挡报警
-                                            alarmOptions = alarmOptions | MnKitAlarmType.Occlusion_Detection;
-                                        } else if (listBean.getAlarmType() == 14) {//PIR侦测
-                                            alarmOptions = alarmOptions | MnKitAlarmType.Infrared_detection;
-                                        } else if (listBean.getAlarmType() == 256) { //箱体报警
-                                            alarmOptions = alarmOptions | MnKitAlarmType.Box_Detection;
                                         }
                                     }
+                                    pushconfigBean.setAlarmTypeOptions(alarmOptions);
+                                    callback.onGetDevPushconfigSuc(pushconfigBean);
+                                } else if (response.getCode() == 3000) {
+                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                    callback.onGetDevPushconfigFailed(response.getMsg());
+                                } else {
+                                    callback.onGetDevPushconfigFailed(response.getMsg());
                                 }
-                                pushconfigBean.setAlarmTypeOptions(alarmOptions);
-                                weakReference.get().onGetDevPushconfigSuc(pushconfigBean);
-                            } else if (response.getCode() == 3000) {
-                                loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                weakReference.get().onGetDevPushconfigFailed(response.getMsg());
-                            } else {
-                                weakReference.get().onGetDevPushconfigFailed(response.getMsg());
                             }
+                        } catch (Exception e) {
+
                         }
                     }
                 });
@@ -1131,24 +1160,23 @@ public class MNKit {
      * @param alarmOptions       推送消息类型配置(Push message type configuration)
      * @param sleepenable        是否启用休眠(Whether to enable hibernation)
      * @param sleepTimeRangeBean 休眠时间段(Sleep period)
-     * @param callBack           Callback method
+     * @param callback           Callback method
      */
 
     public static void setPushConfigerationWithSN(String sn, int channelId, int alarmOptions, int sleepenable,
-                                                  ArrayList<PushconfigBean.SleepTimeRangeBean> sleepTimeRangeBean, MNKitInterface.SetDevPushconfigCallBack callBack) {
+                                                  ArrayList<PushconfigBean.SleepTimeRangeBean> sleepTimeRangeBean, MNKitInterface.SetDevPushconfigCallBack callback) {
         if (MNOpenSDK.mContext == null) {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
         }
 
         try {
-            WeakReference<MNKitInterface.SetDevPushconfigCallBack> weakReference = new WeakReference<>(callBack);
             if (!AuthorityManager.isHadDeviceConfigAuthority(sn)) {
-                if (weakReference != null && weakReference.get() != null) {
+                if (callback != null) {
                     BaseBean baseBean = new BaseBean();
                     baseBean.setCode(5005);
                     baseBean.setMsg("Restricted permission");
-                    weakReference.get().onSetDevPushconfigSuc(baseBean);
+                    callback.onSetDevPushconfigSuc(baseBean);
                 }
                 return;
             }
@@ -1177,22 +1205,26 @@ public class MNKit {
                     .execute(new GenericsCallback<BaseBean>(new JsonGenericsSerializator()) {
                         @Override
                         public void onError(Call call, Exception e, int id) {
-                            if (weakReference != null && weakReference.get() != null) {
-                                weakReference.get().onSetDevPushconfigFailed(e.getMessage());
+                            if (callback != null) {
+                                callback.onSetDevPushconfigFailed(e.getMessage());
                             }
                         }
 
                         @Override
                         public void onResponse(BaseBean response, int id) {
-                            if (response != null && weakReference != null && weakReference.get() != null) {
-                                if (response.getCode() == 2000) {
-                                    weakReference.get().onSetDevPushconfigSuc(response);
-                                } else if (response.getCode() == 3000) {
-                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                    weakReference.get().onSetDevPushconfigFailed(response.getMsg());
-                                } else {
-                                    weakReference.get().onSetDevPushconfigFailed(response.getMsg());
+                            try {
+                                if (response != null && callback != null) {
+                                    if (response.getCode() == 2000) {
+                                        callback.onSetDevPushconfigSuc(response);
+                                    } else if (response.getCode() == 3000) {
+                                        loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                        callback.onSetDevPushconfigFailed(response.getMsg());
+                                    } else {
+                                        callback.onSetDevPushconfigFailed(response.getMsg());
+                                    }
                                 }
+                            } catch (Exception e) {
+
                             }
                         }
                     });
@@ -1210,16 +1242,15 @@ public class MNKit {
      * @param email        电子邮箱（E-mail）
      * @param locale       语言 "en_US"或"zh_CN"（Language "en_US" or "zh_CN"）
      * @param valid        注册方式  "sms"或者"email"（Registration method "sms" or "email"）
-     * @param callBack     Callback method
+     * @param callback     Callback method
      */
 
-    public static void getAuthcode(String country_code, String phone, String email, String locale, String valid, MNKitInterface.AuthcodeCallBack callBack) {
+    public static void getAuthcode(String country_code, String phone, String email, String locale, String valid, MNKitInterface.AuthcodeCallBack callback) {
         if (MNOpenSDK.mContext == null) {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
         }
         try {
-            WeakReference<MNKitInterface.AuthcodeCallBack> weakReference = new WeakReference<>(callBack);
             JSONObject jsonObject = new JSONObject();
             if (!TextUtils.isEmpty(country_code)) {
                 jsonObject.put("country_code", country_code);
@@ -1246,22 +1277,26 @@ public class MNKit {
                     .execute(new GenericsCallback<BaseBean>(new JsonGenericsSerializator()) {
                         @Override
                         public void onError(Call call, Exception e, int id) {
-                            if (weakReference != null && weakReference.get() != null) {
-                                weakReference.get().onGetAuthcodeFailed(e.getMessage());
+                            if (callback != null) {
+                                callback.onGetAuthcodeFailed(e.getMessage());
                             }
                         }
 
                         @Override
                         public void onResponse(BaseBean response, int id) {
-                            if (response != null && weakReference != null && weakReference.get() != null) {
-                                if (response.getCode() == 2000) {
-                                    weakReference.get().onGetAuthcodeSuc(response);
-                                } else if (response.getCode() == 3000) {
-                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                    weakReference.get().onGetAuthcodeFailed(response.getMsg());
-                                } else {
-                                    weakReference.get().onGetAuthcodeFailed(response.getMsg());
+                            try {
+                                if (response != null && callback != null) {
+                                    if (response.getCode() == 2000) {
+                                        callback.onGetAuthcodeSuc(response);
+                                    } else if (response.getCode() == 3000) {
+                                        loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                        callback.onGetAuthcodeFailed(response.getMsg());
+                                    } else {
+                                        callback.onGetAuthcodeFailed(response.getMsg());
+                                    }
                                 }
+                            } catch (Exception e) {
+
                             }
                         }
                     });
@@ -1277,16 +1312,15 @@ public class MNKit {
      * @param email       注册邮箱（与手机号码注册相斥）（Registered email (excludes registration with mobile number)）
      * @param phone       注册手机号码（与注册邮箱相斥）（Registered mobile number (excludes registered email)）
      * @param active_code 对应注册方式的验证码（Verification code corresponding to registration method）
-     * @param callBack    Callback method
+     * @param callback    Callback method
      */
 
-    public static void regiterUser(String email, String phone, String active_code, MNKitInterface.RegiterUserCallBack callBack) {
+    public static void regiterUser(String email, String phone, String active_code, MNKitInterface.RegiterUserCallBack callback) {
         if (MNOpenSDK.mContext == null) {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
         }
         try {
-            WeakReference<MNKitInterface.RegiterUserCallBack> weakReference = new WeakReference<>(callBack);
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("app_key", MNOpenSDK.getAppKey());
             jsonObject.put("app_secret", MNOpenSDK.getAppSecret());
@@ -1304,22 +1338,26 @@ public class MNKit {
                     new GenericsCallback<BaseBean>(new JsonGenericsSerializator()) {
                         @Override
                         public void onError(Call call, Exception e, int id) {
-                            if (weakReference != null && weakReference.get() != null) {
-                                weakReference.get().onRegiterUserFailed(e.getMessage());
+                            if (callback != null) {
+                                callback.onRegiterUserFailed(e.getMessage());
                             }
                         }
 
                         @Override
                         public void onResponse(BaseBean response, int id) {
-                            if (response != null && weakReference != null && weakReference.get() != null) {
-                                if (response.getCode() == 2000) {
-                                    weakReference.get().onRegiterUserSuc(response);
-                                } else if (response.getCode() == 3000) {
-                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                    weakReference.get().onRegiterUserFailed(response.getMsg());
-                                } else {
-                                    weakReference.get().onRegiterUserFailed(response.getMsg());
+                            try {
+                                if (response != null && callback != null) {
+                                    if (response.getCode() == 2000) {
+                                        callback.onRegiterUserSuc(response);
+                                    } else if (response.getCode() == 3000) {
+                                        loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                        callback.onRegiterUserFailed(response.getMsg());
+                                    } else {
+                                        callback.onRegiterUserFailed(response.getMsg());
+                                    }
                                 }
+                            } catch (Exception e) {
+
                             }
                         }
                     });
@@ -1338,16 +1376,15 @@ public class MNKit {
      * @param password     用户密码 （user password）
      * @param country_code 国家码（Country code）
      * @param active_code  验证码（Verification code）
-     * @param callBack     Callback method
+     * @param callback     Callback method
      */
 
-    public static void setUserPassword(String email, String phone, String password, String country_code, String active_code, MNKitInterface.SetUserPasswordCallBack callBack) {
+    public static void setUserPassword(String email, String phone, String password, String country_code, String active_code, MNKitInterface.SetUserPasswordCallBack callback) {
         if (MNOpenSDK.mContext == null) {
             Log.e("MNKit", MNOpenSDK.errMsg);
             return;
         }
         try {
-            WeakReference<MNKitInterface.SetUserPasswordCallBack> weakReference = new WeakReference<>(callBack);
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("app_key", MNOpenSDK.getAppKey());
             jsonObject.put("app_secret", MNOpenSDK.getAppSecret());
@@ -1364,22 +1401,26 @@ public class MNKit {
                     new GenericsCallback<BaseBean>(new JsonGenericsSerializator()) {
                         @Override
                         public void onError(Call call, Exception e, int id) {
-                            if (weakReference != null && weakReference.get() != null) {
-                                weakReference.get().onSetUserPasswordFailed(e.getMessage());
+                            if (callback != null) {
+                                callback.onSetUserPasswordFailed(e.getMessage());
                             }
                         }
 
                         @Override
                         public void onResponse(BaseBean response, int id) {
-                            if (response != null && weakReference != null && weakReference.get() != null) {
-                                if (response.getCode() == 2000) {
-                                    weakReference.get().onSetUserPasswordSuc(response);
-                                } else if (response.getCode() == 3000) {
-                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                    weakReference.get().onSetUserPasswordFailed(response.getMsg());
-                                } else {
-                                    weakReference.get().onSetUserPasswordFailed(response.getMsg());
+                            try {
+                                if (response != null && callback != null) {
+                                    if (response.getCode() == 2000) {
+                                        callback.onSetUserPasswordSuc(response);
+                                    } else if (response.getCode() == 3000) {
+                                        loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                        callback.onSetUserPasswordFailed(response.getMsg());
+                                    } else {
+                                        callback.onSetUserPasswordFailed(response.getMsg());
+                                    }
                                 }
+                            } catch (Exception e) {
+
                             }
                         }
                     });
@@ -1395,7 +1436,6 @@ public class MNKit {
      * @param deviceId 设备ID（device Id）
      */
     public static void getFavoritePointsInfo(String deviceId, MNKitInterface.GetFavoritePointsInfoCallBack callback) {
-        WeakReference<MNKitInterface.GetFavoritePointsInfoCallBack> weakReference = new WeakReference<>(callback);
         OkHttpUtils.get()
                 .url(MNOpenSDK.getDomain() + "/api/v3/pre_position/list")
                 .addHeader("app_key", MNOpenSDK.getAppKey())
@@ -1406,22 +1446,26 @@ public class MNKit {
                 .execute(new GenericsCallback<FavoritesInfoBean>(new JsonGenericsSerializator()) {
                     @Override
                     public void onError(Call call, Exception e, int id) {
-                        if (weakReference != null && weakReference.get() != null) {
-                            weakReference.get().onGetFavoritePointsInfoFailed(null);
+                        if (callback != null) {
+                            callback.onGetFavoritePointsInfoFailed(null);
                         }
                     }
 
                     @Override
                     public void onResponse(FavoritesInfoBean response, int id) {
-                        if (response != null && weakReference != null && weakReference.get() != null) {
-                            if (response.getCode() == 2000) {
-                                weakReference.get().onGetFavoritePointsInfoSuc(response);
-                            } else if (response.getCode() == 3000) {
-                                loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                weakReference.get().onGetFavoritePointsInfoFailed(response.getMsg());
-                            } else {
-                                weakReference.get().onGetFavoritePointsInfoFailed(response.getMsg());
+                        try {
+                            if (response != null && callback != null) {
+                                if (response.getCode() == 2000) {
+                                    callback.onGetFavoritePointsInfoSuc(response);
+                                } else if (response.getCode() == 3000) {
+                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                    callback.onGetFavoritePointsInfoFailed(response.getMsg());
+                                } else {
+                                    callback.onGetFavoritePointsInfoFailed(response.getMsg());
+                                }
                             }
+                        } catch (Exception e) {
+
                         }
                     }
                 });
@@ -1434,7 +1478,6 @@ public class MNKit {
      * @param callback        Callback method
      */
     public static void delteFavoritePoints(ArrayList<String> pre_positon_ids, MNKitInterface.DelteFavoritePointsCallBack callback) {
-        WeakReference<MNKitInterface.DelteFavoritePointsCallBack> weakReference = new WeakReference<>(callback);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("pre_positon_ids", pre_positon_ids);
         String jsonData = jsonObject.toJSONString();
@@ -1448,22 +1491,26 @@ public class MNKit {
                 new GenericsCallback<FavoriteDelteBean>(new JsonGenericsSerializator()) {
                     @Override
                     public void onError(Call call, Exception e, int id) {
-                        if (weakReference != null && weakReference.get() != null) {
-                            weakReference.get().onDelteFavoritePointsFailed(null);
+                        if (callback != null) {
+                            callback.onDelteFavoritePointsFailed(null);
                         }
                     }
 
                     @Override
                     public void onResponse(FavoriteDelteBean response, int id) {
-                        if (response != null && weakReference != null && weakReference.get() != null) {
-                            if (response.getCode() == 2000) {
-                                weakReference.get().onDelteFavoritePointsSuc(response);
-                            } else if (response.getCode() == 3000) {
-                                loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                weakReference.get().onDelteFavoritePointsFailed(response.getMsg());
-                            } else {
-                                weakReference.get().onDelteFavoritePointsFailed(response.getMsg());
+                        try {
+                            if (response != null && callback != null) {
+                                if (response.getCode() == 2000) {
+                                    callback.onDelteFavoritePointsSuc(response);
+                                } else if (response.getCode() == 3000) {
+                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                    callback.onDelteFavoritePointsFailed(response.getMsg());
+                                } else {
+                                    callback.onDelteFavoritePointsFailed(response.getMsg());
+                                }
                             }
+                        } catch (Exception e) {
+
                         }
                     }
                 });
@@ -1479,7 +1526,6 @@ public class MNKit {
      * @param callback    Callback method
      */
     public static void saveFavoritePoint(String name, String position_id, String device_id, File file, MNKitInterface.SaveFavoritePointsCallBack callback) {
-        WeakReference<MNKitInterface.SaveFavoritePointsCallBack> weakReference = new WeakReference<>(callback);
         OkHttpUtils.post().url(MNOpenSDK.getDomain() + "/api/v3/pre_position/save")
                 .addHeader("app_key", MNOpenSDK.getAppKey())
                 .addHeader("app_secret", MNOpenSDK.getAppSecret())
@@ -1493,22 +1539,26 @@ public class MNKit {
                 new GenericsCallback<FavoritePointSaveBean>(new JsonGenericsSerializator()) {
                     @Override
                     public void onError(Call call, Exception e, int id) {
-                        if (weakReference != null && weakReference.get() != null) {
-                            weakReference.get().onSaveFavoritePointsFailed(e.getMessage());
+                        if (callback != null) {
+                            callback.onSaveFavoritePointsFailed(e.getMessage());
                         }
                     }
 
                     @Override
                     public void onResponse(FavoritePointSaveBean response, int id) {
-                        if (response != null && weakReference != null && weakReference.get() != null) {
-                            if (response.getCode() == 2000) {
-                                weakReference.get().onSaveFavoritePointsSuc(response);
-                            } else if (response.getCode() == 3000) {
-                                loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                weakReference.get().onSaveFavoritePointsFailed(response.getMsg());
-                            } else {
-                                weakReference.get().onSaveFavoritePointsFailed(response.getMsg());
+                        try {
+                            if (response != null && callback != null) {
+                                if (response.getCode() == 2000) {
+                                    callback.onSaveFavoritePointsSuc(response);
+                                } else if (response.getCode() == 3000) {
+                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                    callback.onSaveFavoritePointsFailed(response.getMsg());
+                                } else {
+                                    callback.onSaveFavoritePointsFailed(response.getMsg());
+                                }
                             }
+                        } catch (Exception e) {
+
                         }
                     }
                 });
@@ -1520,7 +1570,6 @@ public class MNKit {
      * @param device_id Device Id
      */
     public static void getInviteShareUsers(String device_id, MNKitInterface.GetInviteShareUsersCallBack callback) {
-        WeakReference<MNKitInterface.GetInviteShareUsersCallBack> weakReference = new WeakReference<>(callback);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("device_id", device_id);
         String strJson = jsonObject.toJSONString();
@@ -1534,22 +1583,26 @@ public class MNKit {
                 .execute(new GenericsCallback<ShareUserListBean>(new JsonGenericsSerializator()) {
                     @Override
                     public void onError(Call call, Exception e, int id) {
-                        if (weakReference != null && weakReference.get() != null) {
-                            weakReference.get().onGetInviteShareUsersFailed(e.getMessage());
+                        if (callback != null) {
+                            callback.onGetInviteShareUsersFailed(e.getMessage());
                         }
                     }
 
                     @Override
                     public void onResponse(ShareUserListBean response, int id) {
-                        if (response != null && weakReference != null && weakReference.get() != null) {
-                            if (response.getCode() == 2000) {
-                                weakReference.get().onGetInviteShareUsersSuc(response);
-                            } else if (response.getCode() == 3000) {
-                                loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                weakReference.get().onGetInviteShareUsersFailed(response.getMsg());
-                            } else {
-                                weakReference.get().onGetInviteShareUsersFailed(response.getMsg());
+                        try {
+                            if (response != null && callback != null) {
+                                if (response.getCode() == 2000) {
+                                    callback.onGetInviteShareUsersSuc(response);
+                                } else if (response.getCode() == 3000) {
+                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                    callback.onGetInviteShareUsersFailed(response.getMsg());
+                                } else {
+                                    callback.onGetInviteShareUsersFailed(response.getMsg());
+                                }
                             }
+                        } catch (Exception e) {
+
                         }
                     }
                 });
@@ -1562,7 +1615,6 @@ public class MNKit {
      * @param callback Callback method
      */
     public static void getSharedHistoryBySn(String sn, MNKitInterface.GetSharedHistoryCallBack callback) {
-        WeakReference<MNKitInterface.GetSharedHistoryCallBack> weakReference = new WeakReference<>(callback);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("sn", sn);//数组
         jsonObject.put("size", 5);//数组
@@ -1577,22 +1629,26 @@ public class MNKit {
                 .execute(new GenericsCallback<SharedHistoryBean>(new JsonGenericsSerializator()) {
                     @Override
                     public void onError(Call call, Exception e, int id) {
-                        if (weakReference != null && weakReference.get() != null) {
-                            weakReference.get().onGetSharedHistoryFailed(e.getMessage());
+                        if (callback != null) {
+                            callback.onGetSharedHistoryFailed(e.getMessage());
                         }
                     }
 
                     @Override
                     public void onResponse(SharedHistoryBean response, int id) {
-                        if (response != null && weakReference != null && weakReference.get() != null) {
-                            if (response.getCode() == 2000) {
-                                weakReference.get().onGetSharedHistorySuc(response);
-                            } else if (response.getCode() == 3000) {
-                                loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                weakReference.get().onGetSharedHistoryFailed(response.getMsg());
-                            } else {
-                                weakReference.get().onGetSharedHistoryFailed(response.getMsg());
+                        try {
+                            if (response != null && callback != null) {
+                                if (response.getCode() == 2000) {
+                                    callback.onGetSharedHistorySuc(response);
+                                } else if (response.getCode() == 3000) {
+                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                    callback.onGetSharedHistoryFailed(response.getMsg());
+                                } else {
+                                    callback.onGetSharedHistoryFailed(response.getMsg());
+                                }
                             }
+                        } catch (Exception e) {
+
                         }
                     }
                 });
@@ -1610,7 +1666,6 @@ public class MNKit {
      * @param callback    Callback method
      */
     public static void shareDevToAccount(String sn, int time_limit, int authority, String account, String countryCode, String locale, MNKitInterface.ShareDevToAccountCallBack callback) {
-        WeakReference<MNKitInterface.ShareDevToAccountCallBack> weakReference = new WeakReference<>(callback);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("sn", sn);
         if (time_limit >= 0) {
@@ -1636,20 +1691,24 @@ public class MNKit {
                 .execute(new GenericsCallback<BaseBean>(new JsonGenericsSerializator()) {
                     @Override
                     public void onError(Call call, Exception e, int id) {
-                        if (weakReference != null && weakReference.get() != null) {
-                            weakReference.get().onSharedDevToAccountFailed(e.getMessage());
+                        if (callback != null) {
+                            callback.onSharedDevToAccountFailed(e.getMessage());
                         }
                     }
 
                     @Override
                     public void onResponse(BaseBean response, int id) {
-                        if (response != null && weakReference != null && weakReference.get() != null) {
-                            if (response.getCode() == 3000) {
-                                loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                weakReference.get().onSharedDevToAccountFailed(response.getMsg());
-                            } else {
-                                weakReference.get().onSharedDevToAccountSuc(response);
+                        try {
+                            if (response != null && callback != null) {
+                                if (response.getCode() == 3000) {
+                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                    callback.onSharedDevToAccountFailed(response.getMsg());
+                                } else {
+                                    callback.onSharedDevToAccountSuc(response);
+                                }
                             }
+                        } catch (Exception e) {
+
                         }
                     }
                 });
@@ -1664,7 +1723,6 @@ public class MNKit {
      * @param callback   Callback method
      */
     public static void getShareDevQrCode(String device_id, int authority, int time_limit, MNKitInterface.GetShareDevQrCodeCallBack callback) {
-        WeakReference<MNKitInterface.GetShareDevQrCodeCallBack> weakReference = new WeakReference<>(callback);
         String url = MNOpenSDK.getDomain() + "/api/v3/user/device_share/qrcode?device_id=" + device_id + "&authority=" + authority;
         if (time_limit > 0) {
             url = url + "&time_limit=" + time_limit;
@@ -1682,20 +1740,24 @@ public class MNKit {
             @Override
             public void onFailure(Call call, IOException e) {
                 e.printStackTrace();
-                if (weakReference != null && weakReference.get() != null) {
-                    weakReference.get().onGetShareDevQrCodeFailed(e.getMessage());
+                if (callback != null) {
+                    callback.onGetShareDevQrCodeFailed(e.getMessage());
                 }
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                if (response != null && weakReference != null && weakReference.get() != null) {
-                    if (response.isSuccessful()) {
-                        byte[] bytes = response.body().bytes();
-                        weakReference.get().onGetShareDevQrCodeSuc(bytes);
-                    } else {
-                        weakReference.get().onGetShareDevQrCodeFailed(request.toString());
+                try {
+                    if (response != null && callback != null) {
+                        if (response.isSuccessful()) {
+                            byte[] bytes = response.body().bytes();
+                            callback.onGetShareDevQrCodeSuc(bytes);
+                        } else {
+                            callback.onGetShareDevQrCodeFailed(request.toString());
+                        }
                     }
+                } catch (Exception e) {
+
                 }
             }
         });
@@ -1707,7 +1769,6 @@ public class MNKit {
      * @param alarmIds 报警消息Ids
      */
     public static void delAlarms(ArrayList<String> alarmIds, MNKitInterface.DelAlarmsCallBack callback) {
-        WeakReference<MNKitInterface.DelAlarmsCallBack> weakReference = new WeakReference<>(callback);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("alarm_ids", alarmIds);
         String strJson = jsonObject.toJSONString();
@@ -1722,22 +1783,26 @@ public class MNKit {
                 .execute(new GenericsCallback<BaseBean>(new JsonGenericsSerializator()) {
                     @Override
                     public void onError(Call call, Exception e, int id) {
-                        if (weakReference != null && weakReference.get() != null) {
-                            weakReference.get().onDelAlarmsFailed(e.getMessage());
+                        if (callback != null) {
+                            callback.onDelAlarmsFailed(e.getMessage());
                         }
                     }
 
                     @Override
                     public void onResponse(BaseBean response, int id) {
-                        if (response != null && weakReference != null && weakReference.get() != null) {
-                            if (response.getCode() == 2000) {
-                                weakReference.get().onDelAlarmsSuc();
-                            } else if (response.getCode() == 3000) {
-                                loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                weakReference.get().onDelAlarmsFailed(response.getMsg());
-                            } else {
-                                weakReference.get().onDelAlarmsFailed(response.getMsg());
+                        try {
+                            if (response != null && callback != null) {
+                                if (response.getCode() == 2000) {
+                                    callback.onDelAlarmsSuc();
+                                } else if (response.getCode() == 3000) {
+                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                    callback.onDelAlarmsFailed(response.getMsg());
+                                } else {
+                                    callback.onDelAlarmsFailed(response.getMsg());
+                                }
                             }
+                        } catch (Exception e) {
+
                         }
                     }
                 });
@@ -1755,7 +1820,6 @@ public class MNKit {
      */
 
     public static void delAlarmsByTime(ArrayList<String> deviceSns, long startTime, long endTime, int alarmTypeOptions, String personName, MNKitInterface.DelAlarmsByTimeCallBack callback) {
-        WeakReference<MNKitInterface.DelAlarmsByTimeCallBack> weakReference = new WeakReference<>(callback);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("deviceSns", deviceSns);//数组
         jsonObject.put("startTime", startTime);
@@ -1774,22 +1838,26 @@ public class MNKit {
                     new GenericsCallback<BaseBean>(new JsonGenericsSerializator()) {
                         @Override
                         public void onError(Call call, Exception e, int id) {
-                            if (weakReference != null && weakReference.get() != null) {
-                                weakReference.get().onDelAlarmsByTimeFailed(e.getMessage());
+                            if (callback != null) {
+                                callback.onDelAlarmsByTimeFailed(e.getMessage());
                             }
                         }
 
                         @Override
                         public void onResponse(BaseBean response, int id) {
-                            if (response != null && weakReference != null && weakReference.get() != null) {
-                                if (response.getCode() == 2000) {
-                                    weakReference.get().onDelAlarmsByTimeSuc();
-                                } else if (response.getCode() == 3000) {
-                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                    weakReference.get().onDelAlarmsByTimeFailed(response.getMsg());
-                                } else {
-                                    weakReference.get().onDelAlarmsByTimeFailed(response.getMsg());
+                            try {
+                                if (response != null && callback != null) {
+                                    if (response.getCode() == 2000) {
+                                        callback.onDelAlarmsByTimeSuc();
+                                    } else if (response.getCode() == 3000) {
+                                        loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                        callback.onDelAlarmsByTimeFailed(response.getMsg());
+                                    } else {
+                                        callback.onDelAlarmsByTimeFailed(response.getMsg());
+                                    }
                                 }
+                            } catch (Exception e) {
+
                             }
                         }
                     });
@@ -1805,7 +1873,6 @@ public class MNKit {
      * @param status   标记值 0：未读，1：已读
      */
     public static void modifyStates(ArrayList<String> alarmIds, int status, MNKitInterface.AlarmModifyStateCallBack callback) {
-        WeakReference<MNKitInterface.AlarmModifyStateCallBack> weakReference = new WeakReference<>(callback);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("alarmIds", alarmIds);
         jsonObject.put("status", status);
@@ -1820,22 +1887,26 @@ public class MNKit {
                 .execute(new GenericsCallback<BaseBean>(new JsonGenericsSerializator()) {
                     @Override
                     public void onError(Call call, Exception e, int id) {
-                        if (weakReference != null && weakReference.get() != null) {
-                            weakReference.get().onModifyStateFailed(e.getMessage());
+                        if (callback != null) {
+                            callback.onModifyStateFailed(e.getMessage());
                         }
                     }
 
                     @Override
                     public void onResponse(BaseBean response, int id) {
-                        if (response != null && weakReference != null && weakReference.get() != null) {
-                            if (response.getCode() == 2000) {
-                                weakReference.get().onModifyStateSuc();
-                            } else if (response.getCode() == 3000) {
-                                loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                weakReference.get().onModifyStateFailed(response.getMsg());
-                            } else {
-                                weakReference.get().onModifyStateFailed(response.getMsg());
+                        try {
+                            if (response != null && callback != null) {
+                                if (response.getCode() == 2000) {
+                                    callback.onModifyStateSuc();
+                                } else if (response.getCode() == 3000) {
+                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                    callback.onModifyStateFailed(response.getMsg());
+                                } else {
+                                    callback.onModifyStateFailed(response.getMsg());
+                                }
                             }
+                        } catch (Exception e) {
+
                         }
                     }
                 });
@@ -1852,7 +1923,6 @@ public class MNKit {
      * @param callback         回调方法
      */
     public static void modifyStatesByTime(ArrayList<String> deviceSns, long startTime, long endTime, int alarmTypeOptions, String personName, int status, MNKitInterface.AlarmModifyStateByTimeCallBack callback) {
-        WeakReference<MNKitInterface.AlarmModifyStateByTimeCallBack> weakReference = new WeakReference<>(callback);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("deviceSns", deviceSns);//数组
         jsonObject.put("startTime", startTime);
@@ -1872,22 +1942,26 @@ public class MNKit {
                     new GenericsCallback<BaseBean>(new JsonGenericsSerializator()) {
                         @Override
                         public void onError(Call call, Exception e, int id) {
-                            if (weakReference != null && weakReference.get() != null) {
-                                weakReference.get().onModifyStateByTimeFailed(e.getMessage());
+                            if (callback != null) {
+                                callback.onModifyStateByTimeFailed(e.getMessage());
                             }
                         }
 
                         @Override
                         public void onResponse(BaseBean response, int id) {
-                            if (response != null && weakReference != null && weakReference.get() != null) {
-                                if (response.getCode() == 2000) {
-                                    weakReference.get().onModifyStateByTimeSuc();
-                                } else if (response.getCode() == 3000) {
-                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                    weakReference.get().onModifyStateByTimeFailed(response.getMsg());
-                                } else {
-                                    weakReference.get().onModifyStateByTimeFailed(response.getMsg());
+                            try {
+                                if (response != null && callback != null) {
+                                    if (response.getCode() == 2000) {
+                                        callback.onModifyStateByTimeSuc();
+                                    } else if (response.getCode() == 3000) {
+                                        loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                        callback.onModifyStateByTimeFailed(response.getMsg());
+                                    } else {
+                                        callback.onModifyStateByTimeFailed(response.getMsg());
+                                    }
                                 }
+                            } catch (Exception e) {
+
                             }
                         }
                     });
@@ -1907,7 +1981,6 @@ public class MNKit {
      * @param callback 回调方法
      */
     public static void getFirmwareVer(String sn, String pal, String lang, int max_size, MNKitInterface.GetFirmwareVerCallBack callback) {
-        WeakReference<MNKitInterface.GetFirmwareVerCallBack> weakReference = new WeakReference<>(callback);
         OkHttpUtils.get()
                 .url(MNOpenSDK.getDomain() + "/api/v3/devices/firmware")
                 .addHeader("app_key", MNOpenSDK.getAppKey())
@@ -1921,22 +1994,26 @@ public class MNKit {
                 .execute(new GenericsCallback<FirmwareVerBean>(new JsonGenericsSerializator()) {
                     @Override
                     public void onError(Call call, Exception e, int id) {
-                        if (weakReference != null && weakReference.get() != null) {
-                            weakReference.get().onGetFirmwareVerFailed(e.getMessage());
+                        if (callback != null) {
+                            callback.onGetFirmwareVerFailed(e.getMessage());
                         }
                     }
 
                     @Override
                     public void onResponse(FirmwareVerBean response, int id) {
-                        if (response != null && weakReference != null && weakReference.get() != null) {
-                            if (response.getCode() == 2000) {
-                                weakReference.get().onGetFirmwareVerSuc(response);
-                            } else if (response.getCode() == 3000) {
-                                loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                weakReference.get().onGetFirmwareVerFailed(response.getMsg());
-                            } else {
-                                weakReference.get().onGetFirmwareVerFailed(response.getMsg());
+                        try {
+                            if (response != null && callback != null) {
+                                if (response.getCode() == 2000) {
+                                    callback.onGetFirmwareVerSuc(response);
+                                } else if (response.getCode() == 3000) {
+                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                    callback.onGetFirmwareVerFailed(response.getMsg());
+                                } else {
+                                    callback.onGetFirmwareVerFailed(response.getMsg());
+                                }
                             }
+                        } catch (Exception e) {
+
                         }
                     }
                 });
@@ -1948,7 +2025,6 @@ public class MNKit {
      * @param callback
      */
     public static void getWaitingSharedDev(MNKitInterface.GetShareWaitingDevCallBack callback) {
-        WeakReference<MNKitInterface.GetShareWaitingDevCallBack> weakReference = new WeakReference<>(callback);
         JSONObject jsonObject = new JSONObject();
         String strJson = jsonObject.toJSONString();
         OkHttpUtils.postString().mediaType(jsonType)
@@ -1961,22 +2037,26 @@ public class MNKit {
                 .execute(new GenericsCallback<WaitingShareDevBean>(new JsonGenericsSerializator()) {
                     @Override
                     public void onError(Call call, Exception e, int id) {
-                        if (weakReference != null && weakReference.get() != null) {
-                            weakReference.get().onGetShareWaitingDevFailed(e.getMessage());
+                        if (callback != null) {
+                            callback.onGetShareWaitingDevFailed(e.getMessage());
                         }
                     }
 
                     @Override
                     public void onResponse(WaitingShareDevBean response, int id) {
-                        if (response != null && weakReference != null && weakReference.get() != null) {
-                            if (response.getCode() == 2000) {
-                                weakReference.get().onGetShareWaitingDevSuc(response);
-                            } else if (response.getCode() == 3000) {
-                                loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                weakReference.get().onGetShareWaitingDevFailed(response.getMsg());
-                            } else {
-                                weakReference.get().onGetShareWaitingDevFailed(response.getMsg());
+                        try {
+                            if (response != null && callback != null) {
+                                if (response.getCode() == 2000) {
+                                    callback.onGetShareWaitingDevSuc(response);
+                                } else if (response.getCode() == 3000) {
+                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                    callback.onGetShareWaitingDevFailed(response.getMsg());
+                                } else {
+                                    callback.onGetShareWaitingDevFailed(response.getMsg());
+                                }
                             }
+                        } catch (Exception e) {
+
                         }
                     }
                 });
@@ -1990,7 +2070,6 @@ public class MNKit {
      * @param callback
      */
     public static void receivedSharingDevice(String sn, int received, MNKitInterface.ReceivedShareDeviceCallBack callback) {
-        WeakReference<MNKitInterface.ReceivedShareDeviceCallBack> weakReference = new WeakReference<>(callback);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("sn", sn);
         jsonObject.put("received", received);
@@ -2007,22 +2086,26 @@ public class MNKit {
                 .execute(new GenericsCallback<BaseBean>(new JsonGenericsSerializator()) {
                     @Override
                     public void onError(Call call, Exception e, int received) {
-                        if (weakReference != null && weakReference.get() != null) {
-                            weakReference.get().onReceivedShareDeviceFailed(e.getMessage(), received);
+                        if (callback != null) {
+                            callback.onReceivedShareDeviceFailed(e.getMessage(), received);
                         }
                     }
 
                     @Override
                     public void onResponse(BaseBean response, int received) {
-                        if (response != null && weakReference != null && weakReference.get() != null) {
-                            if (response.getCode() == 2000) {
-                                weakReference.get().onReceivedShareDeviceSuc(response, received);
-                            } else if (response.getCode() == 3000) {
-                                loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
-                                weakReference.get().onReceivedShareDeviceFailed(response.getMsg(), received);
-                            } else {
-                                weakReference.get().onReceivedShareDeviceFailed(response.getMsg(), received);
+                        try {
+                            if (response != null && callback != null) {
+                                if (response.getCode() == 2000) {
+                                    callback.onReceivedShareDeviceSuc(response, received);
+                                } else if (response.getCode() == 3000) {
+                                    loginWithAccount(LocalDataUtils.getUserName(), LocalDataUtils.getPassword(), null);
+                                    callback.onReceivedShareDeviceFailed(response.getMsg(), received);
+                                } else {
+                                    callback.onReceivedShareDeviceFailed(response.getMsg(), received);
+                                }
                             }
+                        } catch (Exception e) {
+
                         }
                     }
                 });
