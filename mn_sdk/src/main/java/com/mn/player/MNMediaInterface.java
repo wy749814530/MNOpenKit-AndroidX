@@ -1,5 +1,6 @@
 package com.mn.player;
 
+import com.mn.AudioPlayState;
 import com.mn.bean.restfull.AlarmsBean;
 import com.mn.bean.restfull.DevicesBean;
 import com.mn.bean.restfull.Record24Bean;
@@ -61,6 +62,12 @@ public interface MNMediaInterface {
      * 关闭音频（关闭音频）
      */
     void stopAudio();
+
+    /**
+     * 获取当前喇叭音状态
+     * @return
+     */
+    AudioPlayState getAudioPlayState();
 
     /**
      * 开始录像（Start recording）

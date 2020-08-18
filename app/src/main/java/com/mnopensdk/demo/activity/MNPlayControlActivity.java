@@ -506,26 +506,6 @@ public class MNPlayControlActivity extends Activity implements MNKitInterface.Au
             }
 
             @Override
-            public void onAudioSwitchChanged(boolean open) {
-                if (open) {
-                    btnVoice.setTag("on");
-                    btnVoice.setImageResource(R.mipmap.live_list_btn_sound_pre);
-                } else {
-                    btnVoice.setTag("off");
-                    btnVoice.setImageResource(R.mipmap.live_list_btn_sound);
-                }
-            }
-
-            @Override
-            public void onHoldTalkSwitchChanged(boolean open) {
-                if (open) {
-                    btnSingleTalk.setImageResource(R.mipmap.live_list_btn_voice_pre);
-                } else {
-                    btnSingleTalk.setImageResource(R.mipmap.live_list_btn_voice);
-                }
-            }
-
-            @Override
             public void onToborder() {
                 LogUtil.i(TAG, "转动到边界啦");
                 ToastUtils.MyToastBottom(getString(R.string.tv_goto_the_border));
@@ -590,8 +570,12 @@ public class MNPlayControlActivity extends Activity implements MNKitInterface.Au
             case R.id.btnVoice:
                 if ("off".equals(btnVoice.getTag())) {
                     mnPlayControl.startAudio();
+                    btnVoice.setTag("on");
+                    btnVoice.setImageResource(R.mipmap.live_list_btn_sound_pre);
                 } else {
                     mnPlayControl.stopAudio();
+                    btnVoice.setTag("off");
+                    btnVoice.setImageResource(R.mipmap.live_list_btn_sound);
                 }
                 break;
             case R.id.btn_CodeStream:
@@ -631,9 +615,11 @@ public class MNPlayControlActivity extends Activity implements MNKitInterface.Au
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 LogUtil.i(TAG, "== ACTION_DOWN ==");
                 mnPlayControl.startTalk();// 开启长按对讲
+                btnSingleTalk.setImageResource(R.mipmap.live_list_btn_voice_pre);
             } else if (event.getAction() == MotionEvent.ACTION_UP) {
                 LogUtil.i(TAG, "== ACTION_UP ==");
                 mnPlayControl.stopTalk();// 关闭长按对讲
+                btnSingleTalk.setImageResource(R.mipmap.live_list_btn_voice);
             }
         } else if (v.getId() == R.id.btn_screenshot) { // 截图
             if (event.getAction() == MotionEvent.ACTION_DOWN) {

@@ -22,6 +22,7 @@ import androidx.annotation.Nullable;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
+import com.mn.AudioPlayState;
 import com.mn.bean.restfull.AlarmsBean;
 import com.mn.bean.restfull.AuthenticationBean;
 import com.mn.bean.restfull.DevicesBean;
@@ -81,6 +82,7 @@ import static MNSDK.MNJni.MNTaskStatusCode.MNTASK_STATUS_CODE_t.MNTS_STOPPED;
 import static MNSDK.MNJni.MNTaskStatusCode.MNTASK_STATUS_CODE_t.MNTS_UNINITIALIZED;
 import static MNSDK.MNJni.MNTaskType.MNAV_TASK_TYPE_t.MTT_CLOUD_ALARM;
 import static MNSDK.MNKit.jsonType;
+import static android.media.AudioTrack.PLAYSTATE_PLAYING;
 
 /**
  * Created by Administrator on 2018/8/30 0030.
@@ -228,7 +230,7 @@ public class MNPlayControl extends FrameLayout implements MNMediaInterface, OnAu
         btnTryCount++;
         if (btnTryCount >= 3) {
             int i = MNJni.GetP2pConnectionStatus();
-            return;
+            btnTryCount = 0;
         }
         cachedThreadPool.execute(() -> {
             MNJni.DestroyLink(mSn);
@@ -295,22 +297,32 @@ public class MNPlayControl extends FrameLayout implements MNMediaInterface, OnAu
     }
 
     @Override
+    public AudioPlayState getAudioPlayState() {
+        if (_audioPlayer != null) {
+            int state = _audioPlayer.getPlayState();
+            if (state == AudioTrack.PLAYSTATE_STOPPED) {
+                return AudioPlayState.PLAYSTATE_STOPPED;
+            } else if (state == AudioTrack.PLAYSTATE_PAUSED) {
+                return AudioPlayState.PLAYSTATE_PAUSED;
+            } else if (state == AudioTrack.PLAYSTATE_PLAYING) {
+                return AudioPlayState.PLAYSTATE_PLAYING;
+            }
+        }
+        return AudioPlayState.PLAYSTATE_NO_INIT;
+    }
+
+    @Override
     public void startAudio() {
         int nBufSize = AudioTrack.getMinBufferSize(8000, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
         if (_audioPlayer == null) {
             _audioPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, 8000, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, nBufSize, AudioTrack.MODE_STREAM);
         }
-        if (_audioPlayer.getPlayState() != AudioTrack.PLAYSTATE_PLAYING) {
+        if (_audioPlayer.getPlayState() != PLAYSTATE_PLAYING) {
             Log.i(TAG, "开启音频");
             if (!mAudioRunable.isRunning()) {
                 mAudioRunable.startRun();
             }
             _audioPlayer.play();
-        } else {
-            Log.i(TAG, "音频已经开启了");
-        }
-        if (mnPlayControlLinstener != null) {
-            mnPlayControlLinstener.onAudioSwitchChanged(true);
         }
     }
 
@@ -318,7 +330,7 @@ public class MNPlayControl extends FrameLayout implements MNMediaInterface, OnAu
     public void stopAudio() {
         mAudioRunable.stopRun();
         if (_audioPlayer != null) {
-            if (_audioPlayer.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {//新修改，增加判断状态
+            if (_audioPlayer.getPlayState() == PLAYSTATE_PLAYING) {//新修改，增加判断状态
                 _audioPlayer.stop();
                 _audioPlayer.release();
                 _audioPlayer = null;
@@ -326,9 +338,6 @@ public class MNPlayControl extends FrameLayout implements MNMediaInterface, OnAu
                 _audioPlayer.release();
                 _audioPlayer = null;
             }
-        }
-        if (mnPlayControlLinstener != null) {
-            mnPlayControlLinstener.onAudioSwitchChanged(false);
         }
     }
 
@@ -342,31 +351,14 @@ public class MNPlayControl extends FrameLayout implements MNMediaInterface, OnAu
         return Mp4RecordManager.getInstance().stopRecord(lVideoTaskContext);
     }
 
-
     @Override
     public void startTalk() {
         cancelYTZTimerTask();
-        stopAudio();
         if (MNJni.GetTaskType(lVoiceTalkTaskContext) == MNJni.MNTaskType.MNAV_TASK_TYPE_t.MTT_P2P_VOICE_TALK.ordinal() || 0 == lVoiceTalkTaskContext) {
             MNJni.StartVoiceTalk(lVoiceTalkTaskContext);
             if (_talkRecorder != null) {
                 cachedThreadPool.execute(() -> _talkRecorder.Start(lVoiceTalkTaskContext));
             }
-        }
-
-        if (mnPlayControlLinstener != null) {
-            mnPlayControlLinstener.onHoldTalkSwitchChanged(true);
-        }
-    }
-
-
-    public void talkPause() {
-        MNJni.StopVoiceTalk(lVoiceTalkTaskContext);
-        if (_talkRecorder != null) {
-            _talkRecorder.Stop();
-        }
-        if (mnPlayControlLinstener != null) {
-            mnPlayControlLinstener.onHoldTalkSwitchChanged(false);
         }
     }
 
@@ -375,9 +367,6 @@ public class MNPlayControl extends FrameLayout implements MNMediaInterface, OnAu
         MNJni.StopVoiceTalk(lVoiceTalkTaskContext);
         if (_talkRecorder != null) {
             _talkRecorder.Stop();
-        }
-        if (mnPlayControlLinstener != null) {
-            mnPlayControlLinstener.onHoldTalkSwitchChanged(false);
         }
     }
 
@@ -432,7 +421,7 @@ public class MNPlayControl extends FrameLayout implements MNMediaInterface, OnAu
         cleanTasks();
         if (_audioPlayer != null) {
             try {
-                if (_audioPlayer.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {//新修改，增加判断状态
+                if (_audioPlayer.getPlayState() == PLAYSTATE_PLAYING) {//新修改，增加判断状态
                     _audioPlayer.stop();
                     _audioPlayer.release();
                     _audioPlayer = null;
@@ -755,7 +744,7 @@ public class MNPlayControl extends FrameLayout implements MNMediaInterface, OnAu
     public void stopPTZAudio() {
         mAudioRunable.stopRun();
         if (_audioPlayer != null) {
-            if (_audioPlayer.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {//新修改，增加判断状态
+            if (_audioPlayer.getPlayState() == PLAYSTATE_PLAYING) {//新修改，增加判断状态
                 _audioPlayer.stop();
                 _audioPlayer.release();
                 _audioPlayer = null;
@@ -938,7 +927,7 @@ public class MNPlayControl extends FrameLayout implements MNMediaInterface, OnAu
     @Override
     public void onRunableAudioData(long lTaskContext, int nChannelId, long userdata, byte[] InData, int nDataLen, int nEncodeType) {
         if (ByteBuffer.wrap(InData).remaining() > 0) {
-            if (_audioPlayer != null && _audioPlayer.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
+            if (_audioPlayer != null && _audioPlayer.getPlayState() == PLAYSTATE_PLAYING) {
                 _audioPlayer.write(InData, 0, InData.length);
             }
         }

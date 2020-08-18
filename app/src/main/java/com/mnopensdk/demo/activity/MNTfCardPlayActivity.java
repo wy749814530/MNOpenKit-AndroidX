@@ -244,22 +244,6 @@ public class MNTfCardPlayActivity extends Activity implements MNOpenSDKInterface
             }
 
             @Override
-            public void onAudioSwitchChanged(boolean open) {
-                if (open) {
-                    btnVoice.setTag("on");
-                    btnVoice.setImageResource(R.mipmap.live_list_btn_sound_pre);
-                } else {
-                    btnVoice.setTag("off");
-                    btnVoice.setImageResource(R.mipmap.live_list_btn_sound);
-                }
-            }
-
-            @Override
-            public void onHoldTalkSwitchChanged(boolean open) {
-
-            }
-
-            @Override
             public void onToborder() {
 
             }
@@ -604,8 +588,12 @@ public class MNTfCardPlayActivity extends Activity implements MNOpenSDKInterface
             case R.id.btnVoice:
                 if ("off".equals(btnVoice.getTag())) {
                     mnPlayControl.startAudio();
+                    btnVoice.setTag("on");
+                    btnVoice.setImageResource(R.mipmap.live_list_btn_sound_pre);
                 } else {
                     mnPlayControl.stopAudio();
+                    btnVoice.setTag("off");
+                    btnVoice.setImageResource(R.mipmap.live_list_btn_sound);
                 }
                 break;
             case R.id.before_day:

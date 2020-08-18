@@ -58,21 +58,6 @@ public interface MNPlayControlLinstener {
      * @param lNetworkFlowPerSecond 网速
      */
     void runSpeed(int nYear, int nMonth, int nDay, int nHour, int nMinute, int nSecond, long lNetworkFlowPerSecond);
-
-    /**
-     * 音频开关状态变化（Audio switch status change）
-     *
-     * @param isOpen
-     */
-    void onAudioSwitchChanged(boolean isOpen); // 音频开关变化
-
-    /**
-     * 语音对讲状态变化(Voice intercom status changes)
-     *
-     * @param isOpen
-     */
-    void onHoldTalkSwitchChanged(boolean isOpen); // 单攻对讲变化
-
     /**
      * 摇头机转动到达边界回调(Shaking machine turns to reach the boundary callback)
      */

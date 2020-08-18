@@ -36,8 +36,10 @@ import okhttp3.OkHttpClient;
 
 
 public class BaseApplication extends MNApplication {
-    public static String APP_KEY = "31cc93923faa4bff";// 公共KEY
-    public static String APP_SECRET = "f6c9deec31644885a123c8ffb573a52e";
+//    public static String APP_KEY = "31cc93923faa4bff";// 公共KEY
+//    public static String APP_SECRET = "f6c9deec31644885a123c8ffb573a52e";
+    public static final String APP_KEY = "8Wa227sQ00S33p4y";// manniu
+    public static final String APP_SECRET = "RlA8aCPlsuATT227kKTg003ncP35HYRI";
     private RuleAlertDialog shareDevDlg;
     private MyHandler myHandler = new MyHandler(this);
 
