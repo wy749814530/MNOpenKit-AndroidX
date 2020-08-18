@@ -193,7 +193,6 @@ public class MNPlayControl extends FrameLayout implements MNMediaInterface, OnAu
         mType = devicesBean.getType();
         mIs4GDev = AbilityTools.isFourGEnable(devicesBean);
         mAllowChangeDomain = devicesBean.getAuthority() != 0;
-        MNOpenSDK.linkToDevice(mSn, mAllowChangeDomain);
     }
 
     @Override
@@ -201,6 +200,8 @@ public class MNPlayControl extends FrameLayout implements MNMediaInterface, OnAu
         btnTryCount = 0;
         mChinalId = channelId;
         cachedThreadPool.execute(() -> {
+            MNOpenSDK.linkToDevice(mSn, mAllowChangeDomain);
+            AbilityTools.isNewProtocol(mDevicesBean);
             //开启任务
             cleanTasks();
             mVideoTaskLock.lock();

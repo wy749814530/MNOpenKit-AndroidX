@@ -217,19 +217,21 @@ public class HomeActivity extends BaseActivity implements SwipeRefreshLayout.OnR
     }
 
     private void linkDev() {
-        boolean isShareDev;
-        for (int i = 0; i < devicesList.size(); i++) {
-            if (devicesList.get(i).getType() != 2) {
-                if (devicesList.get(i).getAuthority() != 0) {
-                    isShareDev = true;
-                } else {
-                    isShareDev = false;
+        threadPool.execute(() -> {
+            boolean isShareDev;
+            for (int i = 0; i < devicesList.size(); i++) {
+                if (devicesList.get(i).getType() != 2) {
+                    if (devicesList.get(i).getAuthority() != 0) {
+                        isShareDev = true;
+                    } else {
+                        isShareDev = false;
+                    }
+                    String lSn = devicesList.get(i).getSn();
+                    //获取到设备信息之后，提前建立起与设备的链接，这里需要放在异步线程中，避免卡顿
+                    MNOpenSDK.linkToDevice(lSn, isShareDev);
                 }
-                String lSn = devicesList.get(i).getSn();
-                //获取到设备信息之后，提前建立起与设备的链接，这里需要放在异步线程中，避免卡顿
-                MNOpenSDK.linkToDevice(lSn, isShareDev);
             }
-        }
+        });
     }
 
     @Override

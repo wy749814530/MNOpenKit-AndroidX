@@ -395,9 +395,6 @@ public class AbilityTools {
             return true;
         }
         MNJni.SetDeviceVersionType(device.getSn(), true);
-        if (device.getType() == 4 || device.getType() == 11) {
-            return true;
-        }
         return false;
     }
 

@@ -355,18 +355,15 @@ public class MNOpenSDK extends BaseSetting {
      * @return
      */
     public static void linkToDevice(String sn, boolean isShareDev) {
-        threadPool.execute(() -> {
-            if (MNJni.GetDeviceLinkStatus(sn) == MNP2P_SESSION_STATUS_UNEXIST.ordinal()) {
-                MNJni.LinkToDevice(sn, isShareDev); //链接⾄设备
-            } else if (MNJni.GetDeviceLinkStatus(sn) == MNP2P_SESSION_STATUS_FAILED.ordinal()) {
-                MNJni.DestroyLink(sn);
-                MNJni.LinkToDevice(sn, isShareDev); //链接⾄设备
-            }
-
-            if (!linkedSns.contains(sn)) {
-                linkedSns.add(sn);
-            }
-        });
+        if (MNJni.GetDeviceLinkStatus(sn) == MNP2P_SESSION_STATUS_UNEXIST.ordinal()) {
+            MNJni.LinkToDevice(sn, isShareDev); //链接⾄设备
+        } else if (MNJni.GetDeviceLinkStatus(sn) == MNP2P_SESSION_STATUS_FAILED.ordinal()) {
+            MNJni.DestroyLink(sn);
+            MNJni.LinkToDevice(sn, isShareDev); //链接⾄设备
+        }
+        if (!linkedSns.contains(sn)) {
+            linkedSns.add(sn);
+        }
     }
 
     /**
@@ -1917,7 +1914,7 @@ public class MNOpenSDK extends BaseSetting {
         threadPool.execute(() -> {
             try {
                 String optionsResult = MNJni.SdkCapturePicture(sn);
-                if (callback != null &&mainHandler != null) {
+                if (callback != null && mainHandler != null) {
                     CoverBean finalOptionsBean = new Gson().fromJson(optionsResult, CoverBean.class);
                     mainHandler.post(() -> {
                         if (callback != null) {
